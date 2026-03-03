@@ -1,8 +1,8 @@
 import express from "express";
-import { pool } from "../auth/banco.js";
-import { poolConnect } from "../auth/banco.js";
+import { pool1, pool2, poolConnect1, poolConnect2 } from "../auth/banco.js";
 import { getListItems, createListItem, deleteListItem } from "../services/sharepointService.js";
 //import axios from "axios";
+
 
 const router = express.Router();
 
@@ -18,9 +18,9 @@ router.get("/teste", (req, res) => {
 router.get("/dKna1", async (req, res) => {
   try {
 
-    await poolConnect;
+    await poolConnect1;
 
-    const result = await pool.request()
+    const result = await pool1.request()
       .query("SELECT TOP 100 * FROM dbo.dKna1");
 
     console.log("Linhas:", result.recordset.length);
@@ -43,9 +43,9 @@ router.get("/dKna1", async (req, res) => {
 router.get("/Mara", async (req, res) => {
   try {
 
-    await poolConnect;
+    await poolConnect1;
 
-    const result = await pool.request()
+    const result = await pool1.request()
       .query("SELECT TOP 100 * FROM dbo.dMara");
 
     console.log("Linhas:", result.recordset.length);
@@ -67,9 +67,9 @@ router.get("/Mara", async (req, res) => {
 
 router.get('/PedidoBD', async (req, res) => {
   try {
-    await poolConnect;
+    await poolConnect1;
 
-    const result = await pool.request().query(`
+    const result = await pool1.request().query(`
       SELECT TOP 100 *
       FROM dbo.fact_pedido_vendedor
     `);
@@ -90,9 +90,9 @@ router.get('/PedidoBD', async (req, res) => {
 
 router.get('/RelatorioBD', async (req, res) => {
   try {
-    await poolConnect;
+    await poolConnect1;
 
-    const result = await pool.request().query(`
+    const result = await pool1.request().query(`
       SELECT TOP 100 *
       FROM dbo.fact_relatorio_disparo
     `);
@@ -109,6 +109,26 @@ router.get('/RelatorioBD', async (req, res) => {
   }
 });
 
+router.get('/VendasFaturadas', async (req, res) => {
+  try {
+    await poolConnect2;
+
+    const result = await pool2.request().query(`
+      SELECT TOP 100 *
+      FROM dbo.Pole_VW_VendaFaturada
+    `);
+
+    console.log("Linhas:", result.recordset.length);
+
+    res.json({ Relatorio: result.recordset });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: 'Erro ao buscar relatório',
+      error: err.message
+    });
+  }
+});
 
 /*-----LISTAS SHAREPOINT-----*/
 
