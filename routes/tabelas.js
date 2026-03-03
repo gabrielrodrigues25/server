@@ -10,6 +10,108 @@ router.get("/teste", (req, res) => {
   res.json({ teste: true });
 });
 
+/*-----BANCO DE DADOS-----*/
+
+
+//BUSCAR ITENS DA TABELA dbo.dKna1
+
+router.get("/dKna1", async (req, res) => {
+  try {
+
+    await poolConnect;
+
+    const result = await pool.request()
+      .query("SELECT TOP 100 * FROM dbo.dKna1");
+
+    console.log("Linhas:", result.recordset.length);
+
+    res.json(result.recordset);
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+
+  }
+});
+
+//BUSCAR ITENS DA TABELA dbo.dKna1
+
+router.get("/Mara", async (req, res) => {
+  try {
+
+    await poolConnect;
+
+    const result = await pool.request()
+      .query("SELECT TOP 100 * FROM dbo.dMara");
+
+    console.log("Linhas:", result.recordset.length);
+
+    res.json(result.recordset);
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+
+  }
+});
+
+//BUSCAR ITENS DA TABELA dbo.fact_pedido_vendedor
+
+router.get('/PedidoBD', async (req, res) => {
+  try {
+    await poolConnect;
+
+    const result = await pool.request().query(`
+      SELECT TOP 100 *
+      FROM dbo.fact_pedido_vendedor
+    `);
+
+    console.log("Linhas:", result.recordset.length);
+
+    res.json({ Relatorio: result.recordset });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: 'Erro ao buscar relatório',
+      error: err.message
+    });
+  }
+});
+
+//BUSCAR ITENS DA TABELA dbo.fact_relatorio_disparo
+
+router.get('/RelatorioBD', async (req, res) => {
+  try {
+    await poolConnect;
+
+    const result = await pool.request().query(`
+      SELECT TOP 100 *
+      FROM dbo.fact_relatorio_disparo
+    `);
+
+    console.log("Linhas:", result.recordset.length);
+
+    res.json({ Relatorio: result.recordset });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: 'Erro ao buscar relatório',
+      error: err.message
+    });
+  }
+});
+
+
+/*-----LISTAS SHAREPOINT-----*/
+
 //BUSCAR ITENS DA LISTA LOJAS
 router.get("/Clientes", async (req, res) => {
   try {
@@ -143,29 +245,8 @@ router.get("/Pedidos", async (req, res) => {
   }
 });
 
-//BUSCAR ITENS DA TABELA dbo.dKna1
-router.get('/dKna1', async (req, res) => {
-  try {
-    await poolConnect;
+   //ENVIAR TODOS OS REGISTROS DO LOCALSTORAGE - RELATÓRIO
 
-    const result = await pool.request().query(`
-      SELECT TOP 10 *
-      FROM dbo.dKna1
-    `);
-
-    res.json({ Relatorio: result.recordset });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      message: 'Erro ao buscar relatório',
-      error: err.message
-    });
-  }
-});
-
-/* ================================================
-   ENVIAR TODOS OS REGISTROS DO LOCALSTORAGE - RELATÓRIO
-================================================ */
 router.post("/Relatorio/lote", async (req, res) => {
   try {
     const { registros } = req.body; // espera um array de objetos
@@ -211,9 +292,9 @@ router.post("/Relatorio/lote", async (req, res) => {
   }
 });
 
-/* ================================================
-   ENVIAR TODOS OS REGISTROS DO LOCALSTORAGE - RELATÓRIO
-================================================ */
+
+   //ENVIAR TODOS OS REGISTROS DO LOCALSTORAGE - PEDIDOS
+
 router.post("/Pedidos/lote", async (req, res) => {
   try {
     const { pedidos } = req.body; // espera um array de objetos
@@ -260,9 +341,9 @@ router.post("/Pedidos/lote", async (req, res) => {
 });
 
 
-/* ================================================
-   ENVIAR TODOS OS REGISTROS DO LOCALSTORAGE PARA LISTA DE AVARIAS
-================================================ */
+
+   //ENVIAR TODOS OS REGISTROS DO LOCALSTORAGE PARA LISTA DE AVARIAS
+
 router.post("/Relatorio/Avarias", async (req, res) => {
   try {
     const { avarias } = req.body; // espera um array de objetos

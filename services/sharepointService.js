@@ -4,9 +4,9 @@ import getToken from "../auth/auth.js";
 const siteUrl =
   "https://graph.microsoft.com/v1.0/sites/polealimentos.sharepoint.com:/sites/Contagemdeestoque-Aplicativo";
 
-/* ================================================
-   FUNÇÃO AUXILIAR: pega siteId
-================================================ */
+
+   //FUNÇÃO AUXILIAR: pega siteId
+
 async function getSiteId(token) {
   const siteResponse = await axios.get(siteUrl, {
     headers: { Authorization: `Bearer ${token}` }
@@ -14,9 +14,9 @@ async function getSiteId(token) {
   return siteResponse.data.id;
 }
 
-/* ================================================
-   FUNÇÃO AUXILIAR: pega listId da lista pelo nome
-================================================ */
+
+   //FUNÇÃO AUXILIAR: pega listId da lista pelo nome
+
 async function getListId(token, siteId, listName) {
   const listResponse = await axios.get(
     `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listName}`,
@@ -25,9 +25,9 @@ async function getListId(token, siteId, listName) {
   return listResponse.data.id;
 }
 
-/* ================================================
-   GET: buscar todos os itens de uma lista (com paginação)
-================================================ */
+
+   //GET: buscar todos os itens de uma lista (com paginação)
+
 export async function getListItems(listName) {
   const token = await getToken();
   const siteId = await getSiteId(token);
@@ -47,10 +47,10 @@ export async function getListItems(listName) {
   return allItems;
 }
 
-/* ================================================
-   POST: criar um item na lista
-   dados: objeto com os campos exatos do SharePoint
-================================================ */
+
+ /*   POST: criar um item na lista
+   dados: objeto com os campos exatos do SharePoint */
+
 export async function createListItem(listName, dados) {
   const token = await getToken();
   const siteId = await getSiteId(token);
@@ -65,9 +65,9 @@ export async function createListItem(listName, dados) {
   return response.data;
 }
 
-/* ================================================
-   DELETE: deletar um item da lista pelo ID
-================================================ */
+
+   //DELETE: deletar um item da lista pelo ID
+
 export async function deleteListItem(listName, itemId) {
   const token = await getToken();
   const siteId = await getSiteId(token);
