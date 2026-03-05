@@ -4,8 +4,8 @@ import "dotenv/config";
 const config1 = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  server: process.env.DB_SERVER || process.env.DB_SERVER_2,
-  database: process.env.DB_DATABASE || process.env.DB_DATABASE_2,
+  server: process.env.DB_SERVER,
+  database: process.env.DB_DATABASE,
   port: Number(process.env.DB_PORT),
   options: {
     encrypt: false,

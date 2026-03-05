@@ -1,21 +1,238 @@
 import express from "express";
 import { pool1, pool2, poolConnect1, poolConnect2 } from "../auth/banco.js";
 import { getListItems, createListItem, deleteListItem } from "../services/sharepointService.js";
-//import axios from "axios";
-
 
 const router = express.Router();
 
+// Rotas protegidas
+
 router.get("/teste", (req, res) => {
-  res.json({ teste: true });
+  res.json({ teste: true, usuario: req.user.username });
 });
 
 /*-----BANCO DE DADOS-----*/
 
+//TABELA DE MATERIAS
 
-//BUSCAR ITENS DA TABELA dbo.dKna1
+router.get("/dMateriais", async (req, res) => {
+  try {
 
-router.get("/dKna1", async (req, res) => {
+    await poolConnect2;
+
+    const result = await pool2.request()
+      .query(`SELECT
+    CAST(MATERIAL AS INT) AS N_Material,
+    TRIM(DescMaterial) AS Desc_Material,
+    HIERARQUIA AS Hierarquia,
+    TRIM(DescHierarquia) AS Desc_Hierarquia,
+    EAN,
+    KG_EMBALAGEM,
+    Gramas,
+    UM AS TIPO_EMBALAGEM,
+    CONCAT(TRIM(DescMaterial), ' - ', CAST(MATERIAL AS INT)) AS Nome_SKU,
+    CONCAT(EAN,'.',CAST(MATERIAL AS INT)) AS Chave_EAN_MATERIAL
+    FROM dbo.POLE_FATO_MATERIAIS
+    WHERE 
+    CAST(MATERIAL AS INT) BETWEEN 300000 AND 499999
+	    AND TRIM(DescHierarquia) NOT LIKE '%não%'
+      AND TRIM(DescHierarquia) NOT LIKE ''
+      AND TRIM(DescMaterial) NOT LIKE '%não%'
+      AND TRIM(DescMaterial) NOT LIKE '%VFUN%'
+      AND TRIM(DescMaterial) NOT LIKE '%nao%'	
+      AND TRIM(EAN) NOT LIKE ''`);
+
+    console.log("Linhas:", result.recordset.length);
+
+    res.json(result.recordset);
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+
+  }
+});
+
+//TABELA DE MATERIAS
+
+router.get("/Hierarquia", async (req, res) => {
+  try {
+
+    await poolConnect2;
+
+    const result = await pool2.request()
+      .query(`SELECT * FROM (
+            SELECT 
+                A.HIERARQUIA,
+                A.HIERARQUIA_PRODUTOS,
+                A.NIVEL_1,
+                A.NIVEL_2,
+                CASE 
+                    WHEN B.HIERARQUIA_PRODUTOS = 'Prod Terceiros' THEN 'Revenda'
+                    ELSE B.HIERARQUIA_PRODUTOS 
+                END AS CATEGORIA,
+                CASE
+                    WHEN B.HIERARQUIA_PRODUTOS = C.HIERARQUIA_PRODUTOS THEN ''
+                    ELSE C.HIERARQUIA_PRODUTOS
+                END AS LINHA,
+                CASE
+                    WHEN LEN(A.HIERARQUIA) = 18 THEN A.HIERARQUIA_PRODUTOS
+                    ELSE ''
+                END AS GRUPO,
+                CASE 
+                    WHEN B.HIERARQUIA_PRODUTOS = 'Aves Resfriadas' OR B.HIERARQUIA_PRODUTOS = 'Aves Congeladas' OR B.HIERARQUIA_PRODUTOS = 'Galeto/Carcaça' THEN 'Aves'
+                    WHEN B.HIERARQUIA_PRODUTOS = 'Prod Terceiros' THEN 'Revenda'
+                    ELSE B.HIERARQUIA_PRODUTOS 
+                END AS CATEGORIA_DRE
+                
+            FROM (
+                SELECT 
+                    A.HIERARQUIA,
+                    A.HIERARQUIA_PRODUTOS,
+                    TRIM(LEFT(A.HIERARQUIA, 8)) AS NIVEL_1,
+                    TRIM(LEFT(A.HIERARQUIA, 12)) AS NIVEL_2
+                FROM POLE_FATO_HIERARQUIA A
+                WHERE 
+                    (A.HIERARQUIA LIKE '0008%' OR A.HIERARQUIA LIKE '0012%')
+                    AND A.HIERARQUIA_PRODUTOS NOT LIKE '%(Não Usar)'
+                    AND A.HIERARQUIA_PRODUTOS NOT LIKE '%(Nfão Usar)'
+                    AND A.HIERARQUIA_PRODUTOS NOT LIKE 'Não Usar%'
+                    AND A.HIERARQUIA_PRODUTOS NOT LIKE '%Produtos Acabados%'
+                    AND A.HIERARQUIA_PRODUTOS NOT LIKE '%NÃO USAR%'
+            ) AS A
+            LEFT JOIN POLE_FATO_HIERARQUIA B ON A.NIVEL_1 = B.HIERARQUIA
+            LEFT JOIN POLE_FATO_HIERARQUIA C ON A.NIVEL_2 = C.HIERARQUIA
+        ) AS C
+        WHERE C.LINHA NOT LIKE '%(Não usar)'
+        AND LEN(C.HIERARQUIA) = 18`);
+
+    console.log("Linhas:", result.recordset.length);
+
+    res.json(result.recordset);
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+
+  }
+});
+
+  //VENDAS FATURADAS - TABELA dbo.Pole_VW_VendaFaturada
+
+router.get('/VendasFaturadas', async (req, res) => {
+  const cliente = req.query.cliente;
+  console.log("Cliente no backend:", cliente);
+  
+  try {
+    await poolConnect2;
+
+    const result = await pool2.request()
+      .input('cliente', cliente)
+      .query(`
+        SELECT TOP 1000
+            V.*,
+            H.CATEGORIA
+        FROM dbo.Pole_VW_VendaFaturada V
+
+        LEFT JOIN dbo.POLE_FATO_MATERIAIS M
+            ON CAST(V.N_MATERIAL AS INT) = CAST(M.MATERIAL AS INT)
+
+        LEFT JOIN (
+            SELECT * FROM (
+                SELECT 
+                    A.HIERARQUIA,
+                    CASE 
+                        WHEN B.HIERARQUIA_PRODUTOS = 'Prod Terceiros' THEN 'Revenda'
+                        ELSE B.HIERARQUIA_PRODUTOS 
+                    END AS CATEGORIA
+                FROM (
+                    SELECT 
+                        HIERARQUIA,
+                        TRIM(LEFT(HIERARQUIA,8)) AS NIVEL_1
+                    FROM POLE_FATO_HIERARQUIA
+                ) A
+                LEFT JOIN POLE_FATO_HIERARQUIA B 
+                    ON A.NIVEL_1 = B.HIERARQUIA
+            ) H
+        ) H
+            ON M.HIERARQUIA = H.HIERARQUIA
+
+        WHERE V.EMISSOR_DA_ORDEM = CAST(@cliente AS INT) 
+        AND V.DT_DOC_FATURAMENTO >= DATEADD(MONTH, -1, GETDATE())
+        ORDER BY V.DT_DOC_FATURAMENTO ASC
+      `);
+
+    console.log("Linhas:", result.recordset.length);
+
+    res.json({ Relatorio: result.recordset });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: 'Erro ao buscar relatório',
+      error: err.message
+    });
+
+  }
+});
+
+  //LISTA DE CATEGORIAS
+
+  router.get("/Categorias", async (req, res) => {
+  try {
+
+    await poolConnect2;
+
+    const result = await pool2.request()
+      .query(`
+        SELECT DISTINCT
+            CASE 
+                WHEN B.HIERARQUIA_PRODUTOS = 'Prod Terceiros' THEN 'Revenda'
+                ELSE B.HIERARQUIA_PRODUTOS
+            END AS CATEGORIA
+        FROM (
+            SELECT 
+                TRIM(LEFT(A.HIERARQUIA,8)) AS NIVEL_1
+            FROM POLE_FATO_HIERARQUIA A
+            WHERE 
+                (A.HIERARQUIA LIKE '0008%' OR A.HIERARQUIA LIKE '0012%')
+        ) A
+        LEFT JOIN POLE_FATO_HIERARQUIA B 
+            ON A.NIVEL_1 = B.HIERARQUIA
+        WHERE B.HIERARQUIA_PRODUTOS IS NOT NULL
+        AND B.HIERARQUIA_PRODUTOS NOT LIKE '%(Não Usar)'
+        AND B.HIERARQUIA_PRODUTOS NOT LIKE '%(Nfão Usar)'
+        AND B.HIERARQUIA_PRODUTOS NOT LIKE 'Não Usar%'
+        AND B.HIERARQUIA_PRODUTOS NOT LIKE '%Produtos Acabados%'
+        AND B.HIERARQUIA_PRODUTOS NOT LIKE '%NÃO USAR%'
+        ORDER BY CATEGORIA
+      `);
+
+    res.json(result.recordset);
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+
+  }
+});
+
+  //BUSCAR ITENS DA TABELA dbo.dKna1
+
+router.get("/dKna1",  async (req, res) => {
   try {
 
     await poolConnect1;
@@ -38,30 +255,6 @@ router.get("/dKna1", async (req, res) => {
   }
 });
 
-//BUSCAR ITENS DA TABELA dbo.dKna1
-
-router.get("/Mara", async (req, res) => {
-  try {
-
-    await poolConnect1;
-
-    const result = await pool1.request()
-      .query("SELECT TOP 100 * FROM dbo.dMara");
-
-    console.log("Linhas:", result.recordset.length);
-
-    res.json(result.recordset);
-
-  } catch (err) {
-
-    console.error(err);
-
-    res.status(500).json({
-      error: err.message
-    });
-
-  }
-});
 
 //BUSCAR ITENS DA TABELA dbo.fact_pedido_vendedor
 
@@ -70,8 +263,9 @@ router.get('/PedidoBD', async (req, res) => {
     await poolConnect1;
 
     const result = await pool1.request().query(`
-      SELECT TOP 100 *
+      SELECT *
       FROM dbo.fact_pedido_vendedor
+      WHERE loja = @loja
     `);
 
     console.log("Linhas:", result.recordset.length);
@@ -89,33 +283,17 @@ router.get('/PedidoBD', async (req, res) => {
 //BUSCAR ITENS DA TABELA dbo.fact_relatorio_disparo
 
 router.get('/RelatorioBD', async (req, res) => {
+const loja = req.query.loja;
+
   try {
     await poolConnect1;
 
-    const result = await pool1.request().query(`
-      SELECT TOP 100 *
+    const result = await pool1.request()
+    .input('loja', loja) // adiciona o parâmetro de entrada
+    .query(`
+      SELECT *
       FROM dbo.fact_relatorio_disparo
-    `);
-
-    console.log("Linhas:", result.recordset.length);
-
-    res.json({ Relatorio: result.recordset });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      message: 'Erro ao buscar relatório',
-      error: err.message
-    });
-  }
-});
-
-router.get('/VendasFaturadas', async (req, res) => {
-  try {
-    await poolConnect2;
-
-    const result = await pool2.request().query(`
-      SELECT TOP 100 *
-      FROM dbo.Pole_VW_VendaFaturada
+      WHERE loja = @loja
     `);
 
     console.log("Linhas:", result.recordset.length);
@@ -132,12 +310,25 @@ router.get('/VendasFaturadas', async (req, res) => {
 
 /*-----LISTAS SHAREPOINT-----*/
 
-//BUSCAR ITENS DA LISTA LOJAS
+// BUSCAR ITENS DA LISTA LOJAS
 router.get("/Clientes", async (req, res) => {
   try {
+
+    const { Promotor } = req.query; // recebe ?Promotor=9080
+
     const itens = await getListItems("dClientes");
 
-    const lojas = itens.map(item => ({
+    // filtrar se o parâmetro existir
+    let itensFiltrados = itens;
+
+    if (Promotor) {
+      itensFiltrados = itens.filter(item =>
+        String(item.field_9) === String(Promotor)
+      );
+    }
+
+
+    const lojas = itensFiltrados.map(item => ({
       rede: item.field_1,
       fantasia: item.field_2,
       cliente: item.LinkTitle,
@@ -153,12 +344,13 @@ router.get("/Clientes", async (req, res) => {
     res.json({ lojas });
 
   } catch (err) {
+    console.error("Erro /Clientes:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
 //BUSCAR ITENS DA LISTA PRODUTOS
-router.get("/Produtos", async (req, res) => {
+/* router.get("/Produtos",  async (req, res) => {
       try {
     const itensProd = await getListItems("dProdutosA");
 
@@ -185,6 +377,43 @@ router.get("/Produtos", async (req, res) => {
       error: err.response?.status,
       message: err.response?.data || err.message
     });
+  }
+}); */
+
+router.get("/Produtos", async (req, res) => {
+
+  try {
+
+    const { cliente } = req.query;
+
+    const itens = await getListItems("dProdutosA");
+
+    let itensFiltrados = itens;
+
+    if (cliente) {
+      itensFiltrados = itens.filter(item =>
+        String(item.field_2) === String(cliente)
+      );
+    }
+
+    const produtos = itensFiltrados.map(item => ({
+      loja: item.field_1,           
+        cliente: item.field_2,
+        codigo_parceiro: item.field_3,
+        material: item.field_4,
+        ean: item.field_5,
+        descricao: item.field_6,
+        un_med: item.field_7,
+        un: item.field_8,
+        qtd_cx: item.field_9,
+        situacao: item.field_10
+    }));
+
+    res.json({ produtos });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -225,7 +454,7 @@ router.get("/Relatorio", async (req, res) => {
 });
 
 // BUSCAR ITENS DA LISTA PEDIDOS  
-router.get("/Pedidos", async (req, res) => {
+router.get("/Pedidos",  async (req, res) => {
   try {
     const itensProd = await getListItems("Pedido - Vendedor");
 
@@ -267,7 +496,7 @@ router.get("/Pedidos", async (req, res) => {
 
    //ENVIAR TODOS OS REGISTROS DO LOCALSTORAGE - RELATÓRIO
 
-router.post("/Relatorio/lote", async (req, res) => {
+router.post("/Relatorio/lote",  async (req, res) => {
   try {
     const { registros } = req.body; // espera um array de objetos
 
@@ -364,7 +593,7 @@ router.post("/Pedidos/lote", async (req, res) => {
 
    //ENVIAR TODOS OS REGISTROS DO LOCALSTORAGE PARA LISTA DE AVARIAS
 
-router.post("/Relatorio/Avarias", async (req, res) => {
+router.post("/Relatorio/Avarias",  async (req, res) => {
   try {
     const { avarias } = req.body; // espera um array de objetos
 
@@ -404,7 +633,7 @@ router.post("/Relatorio/Avarias", async (req, res) => {
 
 
 //BUSCAR ITENS DA LISTA
-router.get("/lista", async (req, res) => {
+router.get("/lista",  async (req, res) => {
   try {
 
     const itens = await getListItems("dClientes");
