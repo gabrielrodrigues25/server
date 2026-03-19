@@ -39,17 +39,20 @@ const router = express.Router();
   }
 }); */
 router.post("/login", async (req, res) => {
+  console.log(req.body);
   try {
     const { usuario, senha } = req.body;
 
-    const Login = await getListItems("Auth");
+    const Login = await getListItems("dClientes");
 
     const user = Login.find(item => {
-      const itemUser = item.User ? String(item.User).trim().toLowerCase() : "";
-      const itemSenha = item.Senha ? String(item.Senha).trim() : "";
+      const matricula = item.field_9 ? String(item.field_9).trim() : "";
+      const itemUser = matricula.toLowerCase();
+
+      const senhaEsperada = "5" + matricula;
 
       return itemUser === usuario.trim().toLowerCase() &&
-             itemSenha === senha
+             senha === senhaEsperada;
     });
 
     if (!user) {
@@ -65,12 +68,30 @@ router.post("/login", async (req, res) => {
     res.json({
       token,
       nome: user.Promotor,      // nome do usuário
-      matricula: user.User   // matrícula
+      matricula: user.field_9  // matrícula
     });
 
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+});
+
+//login site
+
+router.post("/log", (req, res) => {
+
+  const { usuario, senha } = req.body;
+
+  if (usuario === "admin" && senha === "123") {
+
+    req.session.logado = true;
+
+    return res.redirect("/downloads");
+
+  }
+
+  res.send("Usuário ou senha inválidos");
+
 });
 
 export default router;

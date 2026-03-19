@@ -4,29 +4,50 @@ import sharepointRoutes from "./routes/tabelas.js";
 import users from "./routes/users.js";
 import helmet from "helmet";
 import { verificarToken } from "./middlewares/autenticacao.js";
+import path from "path";
+import session from "express-session";
+import { verificarSessao } from "./middlewares/autenticacao.js";
 
 const crypto = await import("crypto");
+
 function generateRandomKey() {
-  return crypto.randomBytes(32).toString("hex"); // Gera uma chave e a converte para hexadecimal
+  return crypto.randomBytes(32).toString("hex");
 }
 
-const app = express(); 
+const app = express();
 
-app.use(cors()); // Habilita CORS para todas as rotas
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(helmet());
 
-app.use(express.json()); // Para interpretar JSON no corpo das requisições
+// servir arquivos estáticos (HTML, CSS, APK etc)
+app.use(session({
+    secret: "segredo_api",
+    resave: false,
+    saveUninitialized: true
+}));
 
-app.use(helmet()); // Segurança básica
+app.use(express.static("public"));
 
-app.use("/auth", users); // rota pública (login)
+// página inicial (login)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public/home/index.html"));
+});
 
-app.use(verificarToken); // proteger todas as rotas abaixo
+// página downloads
+app.get("/downloads", verificarSessao, (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public/downloads/downloads.html"));
+});
 
-app.use("/api", sharepointRoutes); // rotas do SharePoint com /api
+app.use("/auth", users);
+
+// API protegida por token
+app.use("/api", verificarToken, sharepointRoutes);
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`API rodando na porta:${PORT}`);
+  console.log(`API rodando na porta: ${PORT}`);
   console.log(`Chave de criptografia gerada: ${generateRandomKey()}`);
 });

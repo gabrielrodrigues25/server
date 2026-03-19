@@ -4,11 +4,12 @@ import { getListItems, createListItem, deleteListItem } from "../services/sharep
 
 const router = express.Router();
 
-// Rotas protegidas
 
 router.get("/teste", (req, res) => {
   res.json({ teste: true, usuario: req.user.username });
 });
+
+// Rotas protegidas
 
 /*-----BANCO DE DADOS-----*/
 
