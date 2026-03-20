@@ -78,20 +78,35 @@ router.post("/login", async (req, res) => {
 
 //login site
 
-router.post("/log", (req, res) => {
+router.post("/log", async (req, res) => {
+  try {
+    const usuario = String(req.body.usuario || "").trim();
+    const senha = String(req.body.senha || "").trim();
 
-  const { usuario, senha } = req.body;
+    const Login = await getListItems("dClientes");
 
-  if (usuario === "admin" && senha === "123") {
+    const user = Login.find(item => {
+      const matricula = item.field_9 ? String(item.field_9).trim() : "";
 
+      const senhaEsperada = "5" + matricula;
+
+      return matricula === usuario && senha === senhaEsperada;
+    });
+
+    if (!user) {
+      return res.send("Usuário ou senha inválidos");
+    }
+
+    // cria sessão
     req.session.logado = true;
+    req.session.usuario = usuario;
+    req.session.nome = user.Promotor;
 
-    return res.redirect("/downloads");
+    res.redirect("/downloads");
 
+  } catch (err) {
+    res.status(500).send(err.message);
   }
-
-  res.send("Usuário ou senha inválidos");
-
 });
 
 export default router;

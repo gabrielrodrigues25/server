@@ -32,12 +32,12 @@ app.use(express.static("public"));
 
 // página inicial (login)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "public/home/index.html"));
+  res.sendFile(path.join(process.cwd(), "public/pages/home/index.html"));
 });
 
 // página downloads
 app.get("/downloads", verificarSessao, (req, res) => {
-  res.sendFile(path.join(process.cwd(), "public/downloads/downloads.html"));
+  res.sendFile(path.join(process.cwd(), "public/pages/downloads/downloads.html"));
 });
 
 app.use("/auth", users);

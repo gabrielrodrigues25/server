@@ -106,6 +106,7 @@ button:hover {
     }
 
     .download-btn {
+        max-width: 300px;
         width: 100%;
         text-align: center;
     }
