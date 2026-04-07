@@ -1,11 +1,10 @@
-body {
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: white;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+
+.navbar{
+    width:100%;
+    position:fixed;
+    top:0;
+    left:0;
+    z-index:1000;
 }
 
 /* Container */
@@ -17,41 +16,6 @@ body {
     max-width: 400px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     text-align: center;
-}
-
-/* Form centralizado */
-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* Inputs */
-input {
-    width: 100%;
-    max-width: 300px;
-    padding: 12px;
-    margin: 8px 0 18px 0;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-}
-
-/* Botão */
-button {
-    width: 100%;
-    max-width: 300px;
-    padding: 12px;
-    background: #fca606;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #f3960b;
 }
 
 /* Página downloads */
@@ -97,18 +61,187 @@ button:hover {
 
     .container {
         padding: 25px;
+        width: 80%;
     }
 
     .app-card {
         flex-direction: column;
         gap: 15px;
-        align-items: flex-start;
+        align-items: center;
     }
 
     .download-btn {
         max-width: 300px;
-        width: 100%;
+        width: 80%;
         text-align: center;
+    }
+
+}
+
+/* CARD */
+
+.card{
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* INPUTS */
+
+.card input[type="text"],
+.card select{
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.card button,
+.card input[type="button"]{
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #e5952c;
+    color: white;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+.card button:hover,
+.card input[type="button"]:hover{
+    background: #cc7f1a;
+}
+
+/* TABELA */
+
+.tabela-dados{
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-family: Arial, Helvetica, sans-serif;
+    overflow-x: auto;
+    display: block;
+}
+
+/* CABEÇALHO */
+
+.tabela-dados thead{
+    background: #e58f2c;
+    color: white;
+}
+
+.tabela-dados th{
+    padding: 10px;
+    text-align: left;
+    font-size: 14px;
+}
+
+/* LINHAS */
+
+.tabela-dados td{
+    padding: 8px;
+    border-bottom: 1px solid #e5e5e5;
+    font-size: 13px;
+}
+
+/* HOVER */
+
+.tabela-dados tbody tr:hover{
+    background: #f5f7fa;
+}
+
+/* BOTÕES CRUD */
+
+.tabela-dados button{
+    padding: 6px 10px;
+    margin: 2px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* EDITAR */
+
+.tabela-dados button:first-child{
+    background: #28a745;
+    color: white;
+}
+
+.tabela-dados button:first-child:hover{
+    background: #1e7e34;
+}
+
+/* EXCLUIR */
+
+.tabela-dados button:last-child{
+    background: #dc3545;
+    color: white;
+}
+
+.tabela-dados button:last-child:hover{
+    background: #b02a37;
+}
+
+/* LOADER */
+
+.loader-global{
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.4);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.loader-box{
+  background:#fff;
+  padding:20px 30px;
+  border-radius:10px;
+  text-align:center;
+  font-size:22px;
+}
+
+.spinner{
+  border:4px solid #f3f3f3;
+  border-top:4px solid #ffa600;
+  border-radius:50%;
+  width:50px;
+  height:50px;
+  animation: spin 1s linear infinite;
+  margin:auto;
+  margin-bottom:10px;
+}
+
+@keyframes spin{
+  0%{ transform:rotate(0deg); }
+  100%{ transform:rotate(360deg); }
+}
+
+/* RESPONSIVIDADE PARA CELULAR */
+
+@media (max-width: 768px){
+
+    .card{
+        padding: 12px;
+    }
+
+    .tabela-dados th,
+    .tabela-dados td{
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    .tabela-dados button{
+        padding: 5px 8px;
+        font-size: 11px;
     }
 
 }

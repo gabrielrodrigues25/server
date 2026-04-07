@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="icon" href="../../img/icon.png">
+    <title>Clientes</title>
+    
+    <!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navbar -->
+<div id="navbar"></div>
+
+<div class="container mt-4">
+
+    <!-- TÍTULO -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card text-center p-3">
+                <h1>Clientes</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="card p-3 mb-3">
+
+        <div class="row g-2">
+
+            <div class="col-md-3 col-12">
+                <select id="filtroRede" class="form-select">
+                    <option value="">Todas as redes</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 col-12">
+                <select id="filtroLoja" class="form-select">
+                    <option value="">Todas as lojas</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 col-12 d-flex gap-2">
+                <button class="btn btn-warning w-100" onclick="carregarTabelaAPILojas()">
+                    Buscar
+                </button>
+
+                <button class="btn btn-warning w-100" onclick="abrirLoja()">
+                    Nova Loja
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="formLoja" style="display:none;" class="mb-4">
+
+      <div class="row g-2">
+
+        <h4>Cadastrar Loja</h4>
+
+        <div class="col-md-3 col-12">
+          <input type="text" id="rede" class="form-control" placeholder="Rede">
+        </div>
+        <div class="col-md-3 col-12">
+          <input type="text" id="loja" class="form-control" placeholder="Loja">
+        </div>
+        <div class="col-md-3 col-12">
+          <input type="text" id="cliente" class="form-control" placeholder="Cliente">
+        </div>
+        <div class="col-md-3 col-12">
+          <input type="text" id="promotor" class="form-control" placeholder="Promotor">
+        </div>
+        <div class="col-md-3 col-12">
+          <input type="number" id="login" class="form-control" placeholder="Login">
+        </div>
+        <div class="col-md-3 col-12">
+          <input type="text" id="situacao" class="form-control" placeholder="Situação">
+        </div>
+        <div class="col-md-3 col-12">
+          <input type="text" id="disparo" class="form-control" placeholder="Disparo">
+        </div>
+
+        <div class="col-12">
+          <button class="btn btn-success" onclick="salvarLoja()" >Salvar</button>
+        </div>
+
+      </div>
+    
+    </div>
+
+    <!-- TABELA -->
+    <div class="card p-3">
+
+        <div class="table-responsive">
+
+            <table class="tabela-dados">
+                <thead>
+                    <tr id="thead"></tr>
+                </thead>
+
+                <tbody id="tbody"></tbody>
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- LOADER -->
+<div id="loaderGlobal" class="loader-global" style="display:none;">
+  <div class="loader-box">
+    <div class="spinner"></div>
+    <span>Carregando...</span>
+  </div>
+</div>
+
+
+<script src="../../js/config.js"></SCript>
+<script src="../navbar/navbar.js"></script>
+<script src="../../js/loader.js"></script>
+<script src="./lojas.js"></script>
+<script src="../produtos/produtos.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

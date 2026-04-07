@@ -1,9 +1,8 @@
 import express from "express";
 import { pool1, pool2, poolConnect1, poolConnect2 } from "../auth/banco.js";
-import { getListItems, createListItem, deleteListItem } from "../services/sharepointService.js";
+import { AllGetListItems, getListItems, createListItem, updateListItem, deleteListItem } from "../services/sharepointService.js";
 
 const router = express.Router();
-
 
 router.get("/teste", (req, res) => {
   res.json({ teste: true, usuario: req.user.username });
@@ -136,38 +135,127 @@ router.get('/VendasFaturadas', async (req, res) => {
 
     const result = await pool2.request()
       .input('cliente', cliente)
-      .query(`
-        SELECT TOP 1000
-            V.*,
-            H.CATEGORIA
-        FROM dbo.Pole_VW_VendaFaturada V
+      .query(`		
+-- RESUMO DE VENDAS
 
-        LEFT JOIN dbo.POLE_FATO_MATERIAIS M
-            ON CAST(V.N_MATERIAL AS INT) = CAST(M.MATERIAL AS INT)
+WITH ResumoVenda AS (
 
-        LEFT JOIN (
-            SELECT * FROM (
-                SELECT 
-                    A.HIERARQUIA,
-                    CASE 
-                        WHEN B.HIERARQUIA_PRODUTOS = 'Prod Terceiros' THEN 'Revenda'
-                        ELSE B.HIERARQUIA_PRODUTOS 
-                    END AS CATEGORIA
-                FROM (
-                    SELECT 
-                        HIERARQUIA,
-                        TRIM(LEFT(HIERARQUIA,8)) AS NIVEL_1
-                    FROM POLE_FATO_HIERARQUIA
-                ) A
-                LEFT JOIN POLE_FATO_HIERARQUIA B 
-                    ON A.NIVEL_1 = B.HIERARQUIA
-            ) H
-        ) H
-            ON M.HIERARQUIA = H.HIERARQUIA
+    SELECT 
+         CAST(V.DT_DOC_FATURAMENTO AS DATE)        AS DATA_FATURAMENTO
+        ,CAST(V.N_MATERIAL AS INT)                 AS MATERIAL
+        ,V.ORGANIZACAO
+        ,SUM(CAST(V.QUANTIDADE AS FLOAT))          AS QUANTIDADE
+        ,SUM(CAST(V.VALOR AS FLOAT))               AS VALOR
 
-        WHERE V.EMISSOR_DA_ORDEM = CAST(@cliente AS INT) 
-        AND V.DT_DOC_FATURAMENTO >= DATEADD(MONTH, -1, GETDATE())
-        ORDER BY V.DT_DOC_FATURAMENTO ASC
+    FROM dbo.Pole_VW_VendaFaturada V
+
+    WHERE 
+        V.TIPO_FATURAMENTO IN ('Z001','Z033')
+        AND V.EMISSOR_DA_ORDEM = CAST(@cliente AS INT)
+        AND V.DT_DOC_FATURAMENTO >= DATEADD(MONTH,-1,GETDATE())
+
+    GROUP BY
+         CAST(V.DT_DOC_FATURAMENTO AS DATE)
+        ,CAST(V.N_MATERIAL AS INT)
+        ,V.ORGANIZACAO
+),
+
+
+-- DEVOLUÇÕES
+
+ResumoDevolucao AS (
+
+    SELECT 
+         CAST(V.DT_DOC_FATURAMENTO AS DATE)        AS DATA_FATURAMENTO
+        ,CAST(V.N_MATERIAL AS INT)                 AS MATERIAL
+        ,V.ORGANIZACAO
+        ,SUM(CAST(V.QUANTIDADE AS FLOAT))          AS QUANTIDADE
+        ,SUM(CAST(V.VALOR AS FLOAT))               AS VALOR
+
+    FROM dbo.Pole_VW_VendaFaturada V
+
+    WHERE 
+        V.TIPO_FATURAMENTO IN ('Z002','Z003','Z025','Z030')
+        AND V.TIPO_DOC_VENDAS = 'H'
+        AND V.EMISSOR_DA_ORDEM = CAST(@cliente AS INT)
+        AND V.DT_DOC_FATURAMENTO >= DATEADD(MONTH,-1,GETDATE())
+
+    GROUP BY
+         CAST(V.DT_DOC_FATURAMENTO AS DATE)
+        ,CAST(V.N_MATERIAL AS INT)
+        ,V.ORGANIZACAO
+),
+
+-- VENDA LÍQUIDA
+
+VendaLiquida AS (
+
+    SELECT 
+         A.MATERIAL
+        ,A.DATA_FATURAMENTO
+        ,A.ORGANIZACAO
+
+        ,CASE 
+            WHEN B.QUANTIDADE IS NULL 
+            THEN A.QUANTIDADE 
+            ELSE A.QUANTIDADE - B.QUANTIDADE
+        END AS QUANTIDADE
+
+        ,CASE 
+            WHEN B.VALOR IS NULL 
+            THEN A.VALOR
+            ELSE A.VALOR - B.VALOR
+        END AS VALOR
+
+    FROM ResumoVenda A
+
+    LEFT JOIN ResumoDevolucao B
+        ON A.MATERIAL = B.MATERIAL
+        AND A.DATA_FATURAMENTO = B.DATA_FATURAMENTO
+        AND A.ORGANIZACAO = B.ORGANIZACAO
+)
+
+
+-- SELECT FINAL
+
+SELECT TOP 100
+
+     V.MATERIAL
+    ,M.DescMaterial
+    ,V.DATA_FATURAMENTO
+    ,V.ORGANIZACAO
+    ,V.QUANTIDADE
+    ,V.VALOR
+    ,H.CATEGORIA
+
+    ,CAST(V.QUANTIDADE AS FLOAT) /
+        NULLIF(CAST(M.KG_EMBALAGEM AS FLOAT),0) AS CAIXAS
+
+FROM VendaLiquida V
+
+LEFT JOIN dbo.POLE_FATO_MATERIAIS M
+    ON V.MATERIAL = CAST(M.MATERIAL AS INT)
+
+LEFT JOIN (
+    SELECT 
+        A.HIERARQUIA,
+        CASE 
+            WHEN B.HIERARQUIA_PRODUTOS = 'Prod Terceiros' 
+            THEN 'Revenda'
+            ELSE B.HIERARQUIA_PRODUTOS 
+        END AS CATEGORIA
+    FROM (
+        SELECT 
+            HIERARQUIA,
+            TRIM(LEFT(HIERARQUIA,8)) AS NIVEL_1
+        FROM POLE_FATO_HIERARQUIA
+    ) A
+    LEFT JOIN POLE_FATO_HIERARQUIA B
+        ON A.NIVEL_1 = B.HIERARQUIA
+) H
+    ON M.HIERARQUIA = H.HIERARQUIA
+
+ORDER BY V.DATA_FATURAMENTO DESC
       `);
 
     console.log("Linhas:", result.recordset.length);
@@ -284,32 +372,79 @@ router.get('/PedidoBD', async (req, res) => {
 //BUSCAR ITENS DA TABELA dbo.fact_relatorio_disparo
 
 router.get('/RelatorioBD', async (req, res) => {
-const loja = req.query.loja;
+
+  const loja = req.query.loja;
+  const data = req.query.data;
 
   try {
+
     await poolConnect1;
 
     const result = await pool1.request()
-    .input('loja', loja) // adiciona o parâmetro de entrada
-    .query(`
-      SELECT *
-      FROM dbo.fact_relatorio_disparo
-      WHERE loja = @loja
-    `);
+      .input('loja', loja)
+      .input('data', data)
+      .query(`
+        SELECT *
+        FROM dbo.fact_relatorio_disparo
+        WHERE loja = @loja
+        AND data = @data
+      `);
 
     console.log("Linhas:", result.recordset.length);
 
     res.json({ Relatorio: result.recordset });
+
   } catch (err) {
+
     console.error(err);
+
     res.status(500).json({
       message: 'Erro ao buscar relatório',
       error: err.message
     });
+
   }
+
 });
 
 /*-----LISTAS SHAREPOINT-----*/
+
+// Registrar horário de entrada
+router.post("/horario/entrada", async (req, res) => {
+  try {
+    const { registros } = req.body;
+
+    if (!registros || !Array.isArray(registros)) {
+      return res.status(400).json({ erro: "O corpo da requisição deve conter um array 'registros'." });
+    }
+
+    // Cria os itens no SharePoint
+    const promessas = registros.map(registro =>
+      createListItem("8124c393-ca24-42e1-96ff-1aaa7d789f7f", {
+        Rede: registro.rede,
+        Loja: registro.loja,
+        Cliente: registro.cliente,
+        Matricula: registro.matricula,
+        Usu_x00e1_rio: registro.usuario,
+        Data: registro.data,
+        Entrada: registro.entrada,
+        Saida0: registro.saida,
+        Dura_x00e7__x00e3_o: registro.duracao,
+        Motivo: registro.motivo
+      })
+    );
+
+    // Aguarda todas as promessas
+    const resultados = await Promise.all(promessas);
+
+    // Retorna os resultados
+    res.json({ sucesso: true, resultados });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: err.message });
+  }
+});
 
 // BUSCAR ITENS DA LISTA LOJAS
 router.get("/Clientes", async (req, res) => {
@@ -381,6 +516,32 @@ router.get("/Clientes", async (req, res) => {
   }
 }); */
 
+router.post("/produtos/status", async (req, res) => {
+
+  try {
+
+    const { id, ativo } = req.body;
+
+    console.log("Atualizando produto:", id, ativo);
+
+    await updateListItem("dProdutosA", id, {
+      field_10: ativo
+    });
+
+    res.json({ ok: true });
+
+  } catch (error) {
+
+    console.error("Erro ao atualizar produto:", error);
+
+    res.status(500).json({
+      error: error.message
+    });
+
+  }
+
+});
+
 router.get("/Produtos", async (req, res) => {
 
   try {
@@ -393,8 +554,8 @@ router.get("/Produtos", async (req, res) => {
 
     if (cliente) {
       itensFiltrados = itens.filter(item =>
-        String(item.field_2) === String(cliente)
-      );
+      String(item.field_2) === String(cliente)
+    );
     }
 
     const produtos = itensFiltrados.map(item => ({
@@ -407,7 +568,8 @@ router.get("/Produtos", async (req, res) => {
         un_med: item.field_7,
         un: item.field_8,
         qtd_cx: item.field_9,
-        situacao: item.field_10
+        situacao: item.field_10,
+		id: item.id
     }));
 
     res.json({ produtos });
@@ -418,80 +580,198 @@ router.get("/Produtos", async (req, res) => {
   }
 });
 
-// BUSCAR ITENS DA LISTA RELATÓRIO
-router.get("/Relatorio", async (req, res) => {
-  try {
-    const itensProd = await getListItems("Relatório");
+//Produtos da lista formulario
+router.get("/ProdutosForm", async (req, res) => {
 
-    const produtos = itensProd.map(item => ({
-        rede: item.title,
-        cliente: item.field_1,
-        loja: item.field_2,
-        data: item.field_3,
-        material: item.field_4,
-        codigo_parceiro: item.C_x00f3_digocliente,
-        ean: item.field_5,
-        descricao: item.field_6,
-        custo: item.field_7,
-        gondola: item.field_8,
-        camara: item.field_9,
-        estoque_total: item.field_11,
-        planograma: item.field_12,
-        data_vencimento: item.Datavencimento,
-        dias_vencimento: item.Diasparavencer,
-        preco: item.Pre_x00e7_o,
-        lista: item.lista,
-        situacao: item.Situa_x00e7__x00e3_oRebaixa
-      }));
+  try {
+
+    const itens = await getListItems("ListaProdutos");
+
+    let itensFiltrados = itens;
+
+    const produtos = itensFiltrados.map(item => ({
+        descricao: item.Title,           
+        material: item.field_0,
+        ean: item.EAN
+    }));
+
+    res.json({ produtos });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// BUSCAR ITENS DA LISTA RELATÓRIO FILTRADOS
+
+router.get("/Relatorio", async (req, res) => {
+
+  try {
+
+    const loja = req.query.loja;
+    const data = req.query.data;
+
+    console.log(loja, data);
+
+    const filtro = `&$filter=${encodeURIComponent(
+      `fields/field_2 eq '${loja}' and fields/field_3 eq '${data}'`
+    )}`;
+
+    const itens = await AllGetListItems("Relatório", filtro);
+
+    const produtos = itens.map(item => {
+
+      const f = item.fields;
+
+      return {
+        idSharePoint: item.id,
+        rede: f.Title,
+        cliente: f.field_1,
+        loja: f.field_2,
+        data: f.field_3,
+        material: f.field_4,
+        codigo_parceiro: f.C_x00f3_digocliente,
+        ean: f.field_5,
+        descricao: f.field_6,
+        gondola: f.field_8,
+        camara: f.field_9,
+        quantidade: f.field_11,
+        planograma: f.field_12,
+        data_vencimento: f.Datavencimento,
+        dias_vencimento: f.Dias_x0020_para_x0020_vencer,
+        preco: f.Pre_x00e7_o,
+        lista: f.lista,
+        situacao: f.Situa_x00e7__x00e3_oRebaixa
+      };
+
+    });
 
     res.json({ Relatorio: produtos });
 
   } catch (err) {
+
+    console.error(err);
+
     res.status(500).json({
-      error: err.response?.status,
-      message: err.response?.data || err.message
+      message: err.message
     });
+
   }
+
 });
 
 // BUSCAR ITENS DA LISTA PEDIDOS  
 router.get("/Pedidos",  async (req, res) => {
   try {
-    const itensProd = await getListItems("Pedido - Vendedor");
+    const loja = req.query.loja;
+    const data = req.query.data;
 
-    const produtos = itensProd.map(item => ({
-        rede: item.title,
-        cliente: item.field_1,
-        loja: item.Loja,
-        data: item.Data,
-        material: item.Produto,
-        codigo_parceiro: item.C_x00f3_digo_x0020_Cliente,
-        ean: item.EAN,
-        descricao: item.Descri_x00e7__x00e3_o,
-        custo: item.Custo,
-        estoque: item.Estoque_x0020_Fisico,
-        pedido: item.Pr_x00f3_ximo_x0020_Pedido,
-        total: item.Estoque_x0020_total,
-        venda: item.VendaM_x00e9_dia,
-        planograma: item.Planograma,
-        disparo: item.Quantidade_x0020_do_x0020_dispar,
-        disparo_cx: item.Disparo_x0020_CX,
-        pedido_cx: item.Pedido_x0020_CX,
-        sugestao: item.Sugest_x00e3_o_x0020_Promotor,
-        status: item.STATUS,
-        data_pedido: item.DataPedido,
-        preco: item.Pre_x00e7_o,
-        lista: item.lista,
-        situacao: item.Situa_x00e7__x00e3_oRebaixa
-      }));
+    console.log(loja, data);
+
+    const filtro = `&$filter=${encodeURIComponent(
+      `fields/Loja eq '${loja}' and fields/Data eq '${data}'`
+    )}`;
+
+    const itens = await AllGetListItems("Pedido - Vendedor", filtro);
+
+    const produtos = itens.map(item => {
+
+      const f = item.fields;
+
+      return {
+        id: item.id,
+        rede: f.title,
+        cliente: f.field_1,
+        loja: f.Loja,
+        data: f.Data,
+        material: f.Produto,
+        codigo_parceiro: f.C_x00f3_digo_x0020_Cliente,
+        ean: f.EAN,
+        descricao: f.Descri_x00e7__x00e3_o,
+        custo: f.Custo,
+        estoque: f.Estoque_x0020_Fisico,
+        pedido: f.Pr_x00f3_ximo_x0020_Pedido,
+        total: f.Estoque_x0020_total,
+        venda: f.VendaM_x00e9_dia,
+        planograma: f.Planograma,
+        disparo: f.Quantidade_x0020_do_x0020_dispar,
+        disparo_cx: f.Disparo_x0020_CX,
+        pedido_cx: f.Pedido_x0020_CX,
+        sugestao: f.Sugest_x00e3_o_x0020_Promotor,
+        status: f.STATUS,
+        data_pedido: f.DataPedido,
+        preco: f.Pre_x00e7_o,
+        lista: f.lista,
+        situacao: f.Situa_x00e7__x00e3_oRebaixa
+      };
+
+    });
 
     res.json({ Relatorio: produtos });
 
   } catch (err) {
+
+    console.error(err);
+
     res.status(500).json({
-      error: err.response?.status,
-      message: err.response?.data || err.message
+      message: err.message
     });
+
+  }
+
+});
+
+// ATUALIZAR UM REGISTRO NA LISTA RELATÓRIO
+router.patch("/Relatorio/:id", async (req, res) => {
+  const { id } = req.params;
+  const campos = req.body;
+
+  try {
+    const atualizado = await updateListItem("Relatório", id, campos);
+    res.json({ message: "Registro do Relatório atualizado", item: atualizado });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao atualizar registro do Relatório", detalhe: err.message });
+  }
+});
+
+// ATUALIZAR UM REGISTRO NA LISTA PEDIDOS
+router.patch("/Pedidos/:id", async (req, res) => {
+  const { id } = req.params;
+  const campos = req.body;
+
+  try {
+    const atualizado = await updateListItem("Pedido - Vendedor", id, campos);
+    res.json({ message: "Registro do Pedido atualizado", item: atualizado });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao atualizar registro do Pedido", detalhe: err.message });
+  }
+});
+
+//DELETAR DA LISTA RELATÓRIO
+router.delete("/Relatorio/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await deleteListItem("Relatório", id);
+    res.json({ message: "Registro do Relatório deletado com sucesso" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao deletar registro do Relatório", detalhe: err.message });
+  }
+});
+
+//DELETAR DA LISTA PEDIDO-VENDEDOR
+router.delete("/Pedidos/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await deleteListItem("Pedido - Vendedor", id);
+    res.json({ message: "Registro do Pedido deletado com sucesso" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao deletar registro do Pedido", detalhe: err.message });
   }
 });
 
@@ -518,10 +798,11 @@ router.post("/Relatorio/lote",  async (req, res) => {
       field_9: registro.camara,
       field_11: registro.quantidade,
       field_12: registro.planograma,
+	  C_x00f3_digocliente: registro.codigo,
       Datavencimento: registro.vencimento,
-      dias_vencimento: registro.dias_vencimento,
+      Diasparavencer: registro.dias_vencimento,
       Pre_x00e7_o: registro.preco,
-      lista: registro.lista,
+      Lista: registro.lista,
       Situa_x00e7__x00e3_oRebaixa: registro.situacao
     }));
 
@@ -559,6 +840,7 @@ router.post("/Pedidos/lote", async (req, res) => {
       Loja: pedido.loja,
       Data: pedido.data,
       Produto: pedido.material,
+	  C_x00f3_digo_x0020_Cliente: pedido.codigo,
       EAN: pedido.ean,
       Descri_x00e7__x00e3_o: pedido.descricao,
       Estoque_x0020_Fisico: pedido.quantidade,
@@ -630,6 +912,66 @@ router.post("/Relatorio/Avarias",  async (req, res) => {
       message: err.response?.data || err.message
     });
   }
+});
+
+//ENVIO DO formulario
+
+router.post("/Formulario/lote", async (req, res) => {
+
+  try {
+
+    const { registros } = req.body;
+
+    if (!Array.isArray(registros) || registros.length === 0) {
+      return res.status(400).json({ message: "Nenhum produto encontrado" });
+    }
+
+    const promessas = registros.map(registro =>
+
+      createListItem("Formulário", {
+
+        Title: registro.nome,
+        Data: registro.data,
+        EAN: registro.ean,
+
+        field_1: registro.matricula,
+        field_2: registro.rede,
+        field_3: registro.loja,
+        field_4: registro.emissor,
+
+        field_6: registro.latitude,
+        field_7: registro.longitude,
+
+        field_9: registro.material,
+        field_10: registro.descricao,
+
+        field_11: registro.disponivel ? "Sim" : "Não",
+        field_12: registro.precificado ? "Sim" : "Não",
+        field_13: registro.promocao ? "Sim" : "Não",
+		
+		field_14: Number(registro.frentesTotais),
+        field_15: Number(registro.frentesSucre),
+
+        PontoExtra: registro.pontoExtra === "sim" ? "Sim" : "Não"
+
+      })
+
+    );
+
+    const resultados = await Promise.all(promessas);
+
+    res.status(201).json({
+      message: "Registros criados",
+      total: resultados.length
+    });
+
+  } catch (err) {
+
+    console.error(err);
+    res.status(500).json({ message: err.message });
+
+  }
+
 });
 
 

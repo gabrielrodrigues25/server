@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import sharepointRoutes from "./routes/tabelas.js";
 import users from "./routes/users.js";
+import crud from "./routes/crud.js";
 import helmet from "helmet";
 import { verificarToken } from "./middlewares/autenticacao.js";
 import path from "path";
@@ -35,12 +36,27 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(process.cwd(), "public/pages/home/index.html"));
 });
 
+// página home
+app.get("/home", verificarSessao, (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public/pages/home/home.html"));
+});
+
 // página downloads
 app.get("/downloads", verificarSessao, (req, res) => {
   res.sendFile(path.join(process.cwd(), "public/pages/downloads/downloads.html"));
 });
 
-app.use("/auth", users);
+// página lojas
+app.get("/lojas", verificarSessao, (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public/pages/lojas/lojas.html"));
+});
+
+// página lojas
+app.get("/produtos", verificarSessao, (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public/pages/produtos/produtos.html"));
+});
+
+app.use("/auth", users, crud);
 
 // API protegida por token
 app.use("/api", verificarToken, sharepointRoutes);

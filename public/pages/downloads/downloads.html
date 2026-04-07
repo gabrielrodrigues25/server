@@ -6,37 +6,53 @@
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="icon" href="../../img/icon.png">
     <title>Downloads</title>
+    <!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 
-<div class="container downloads">
+<!-- Navbar -->
+<div id="navbar"></div>
 
-<h2>Downloads do Aplicativo</h2>
+<div class="container mt-4">
 
-<div class="app-card">
+<!-- TÍTULO -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card text-center p-3">
+                <h1>Downloads</h1>
+            </div>
+        </div>
+    </div>
 
-<div class="app-info">
+<div class="row justify-content-center">
+
+<div class="col-md-6 col-lg-4">
+
+<div class="card shadow p-3">
+
+<div class="mb-3">
 <strong>Aplicativo Promotor Android</strong>
-<span>Versão 1.0</span>
 </div>
 
-<a class="download-btn" href="../../apks/apk.pdf">Baixar</a>
+<select id="versao" class="form-select mb-3">
+<option value="">Selecione uma versão</option>
+<option value="../../apks/app-v1.0.apk">Versão 1.0</option>
+</select>
 
-</div>
-
-
-<div class="app-card">
-
-<div class="app-info">
-<strong>Aplicativo Promotor IOS</strong>
-<span>Versão 1.0</span>
-</div>
-
-<a class="download-btn" href="../../apks/">Baixar</a>
+<a id="downloadBtn" class="btn btn-success w-100 disabled">
+Baixar
+</a>
 
 </div>
 
 </div>
 
+</div>
+
+</div>
+<script src="../navbar/navbar.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../js/downloads.js"></script>
 </body>
 </html>

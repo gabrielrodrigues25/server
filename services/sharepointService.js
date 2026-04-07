@@ -4,6 +4,25 @@ import getToken from "../auth/auth.js";
 const siteUrl =
   "https://graph.microsoft.com/v1.0/sites/polealimentos.sharepoint.com:/sites/Contagemdeestoque-Aplicativo";
 
+  //função para editar
+export async function updateListItem(listName, itemId, dados) {
+  const token = await getToken();
+  const siteId = await getSiteId(token);
+  const listId = await getListId(token, siteId, listName);
+
+  const response = await axios.patch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items/${itemId}/fields`,
+    dados,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  return response.data;
+}
 
    //FUNÇÃO AUXILIAR: pega siteId
 
@@ -41,6 +60,35 @@ export async function getListItems(listName) {
       headers: { Authorization: `Bearer ${token}` }
     });
     allItems = allItems.concat(response.data.value.map(item => item.fields));
+    url = response.data["@odata.nextLink"] || null;
+  }
+
+  return allItems;
+}
+
+
+export async function AllGetListItems(listName, filtro = "") {
+
+  const token = await getToken();
+  const siteId = await getSiteId(token);
+  const listId = await getListId(token, siteId, listName);
+
+  let url =
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items` +
+    `?$expand=fields&$top=500${filtro}`;
+
+  let allItems = [];
+
+  while (url) {
+
+    console.log("GRAPH URL:", url);
+
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    allItems = allItems.concat(response.data.value);
+
     url = response.data["@odata.nextLink"] || null;
   }
 
