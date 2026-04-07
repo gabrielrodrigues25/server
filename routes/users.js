@@ -115,7 +115,7 @@ router.post("/log", async (req, res) => {
     req.session.usuario = usuario;
     req.session.nome = user.Promotor;
 
-    res.redirect("/downloads");
+    res.redirect("/home");
   } catch (err) {
     res.status(500).send(err.message);
   }
