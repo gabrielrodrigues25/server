@@ -65,14 +65,17 @@ dados.forEach(item => {
 
   linha += `
     <td>
-      <button onclick="editarRegistroLoja(this)">Editar</button>
-      <button onclick="deletarRegistroLoja(${item.id})">Excluir</button>
+      <button id="editarRegistro">Editar</button>
+      <button id="deletarRegistro">Excluir</button>
     </td>
   `;
 
   linha += "</tr>";
 
   body.innerHTML += linha;
+
+  document.getElementById("editarRegistro").addEventListener("click", editarRegistroLoja(this));
+  document.getElementById("deletarRegistro").addEventListener("click", deletarRegistroLoja(item.id));
 
 });
 
