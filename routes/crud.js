@@ -27,11 +27,11 @@ router.get("/Lojas", async (req, res) => {
       rede: item.field_1,
       loja: item.field_2,
       cliente: item.Title,
-      promotor: item.Promotor,
-      login: item.field_9,
-      situação: item.Situa_x00e7__x00e3_o,
-      disparo: item.Disparo,
-      id: item.id
+      promotor: item.Promotor == null ? "Sem promotor" : item.Promotor,
+      login: item.field_9 == null ? 0 : item.field_9,
+      situação: item.Situa_x00e7__x00e3_o == "Ativa" ? "Ativa" : "Inativa",
+      disparo: item.Disparo == null ? "Sem disparo" : item.Disparo,
+      id: item.id == null ? 0 : item.id
 
     }));
 
@@ -73,7 +73,7 @@ router.get("/Produtos", async (req, res) => {
     const registros = itensFiltrados.map(item => ({
       loja: item.field_1,
       cliente: item.field_2,
-      codigo_parceiro: item.field_3,
+      codigo_parceiro: item.field_3 == null ? 0 : item.field_3,
       material: item.field_4,
       ean: item.field_5,
       descricao: item.field_6,
@@ -81,7 +81,7 @@ router.get("/Produtos", async (req, res) => {
       un: item.field_8,
       qtd_cx: item.field_9,
       situacao: item.field_10,
-      id: item.id
+      id: item.id == null ? 0 : item.id
     }));
 
     res.json({ registros });
