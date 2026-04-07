@@ -83,7 +83,6 @@ function renderizarTabelaLojas(dados) {
       </tr>`;
       body.innerHTML += linha;
     });
-  }
 
   // adicionar eventos depois que a tabela é criada
   body.querySelectorAll(".editarRegistro").forEach(btn => {
@@ -98,6 +97,7 @@ function renderizarTabelaLojas(dados) {
       deletarRegistroLoja(id);
     });
   });
+}
 
   // Inicializa tabela com todas as linhas
   atualizarLinhas();
@@ -217,12 +217,12 @@ async function salvarLoja(){
 
  const dados = {
 
-  rede: document.getElementById("rede").value,
-  loja: document.getElementById("loja").value,
-  cliente: document.getElementById("cliente").value,
+  rede: document.getElementById("redeId").value,
+  loja: document.getElementById("lojaId").value,
+  cliente: document.getElementById("clienteId").value,
   promotor: document.getElementById("promotor").value,
   login: document.getElementById("login").value,
-  situacao: document.getElementById("situacao").value,
+  situacao: document.getElementById("situacaoId").value,
   disparo: document.getElementById("disparo").value
 
  };
