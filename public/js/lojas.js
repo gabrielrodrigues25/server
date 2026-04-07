@@ -188,6 +188,10 @@ async function salvarLoja(){
 
 }
 
+document.getElementById("carregarTabLojas").addEventListener("click", carregarTabelaAPILojas);
+document.getElementById("abrirNovoLoja").addEventListener("click", abrirLoja);
+document.getElementById("salvarNovaLoja").addEventListener("click", salvarLoja);
+
 /* async function criarProduto(produto){
 
  await fetch(`${AUTH_URL}/Produtos`,{

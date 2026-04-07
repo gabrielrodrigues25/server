@@ -271,6 +271,10 @@ async function salvarNovo(){
 
 }
 
+document.getElementById("carregarTab").addEventListener("click", carregarTabelaAPI);
+document.getElementById("abrirNovo").addEventListener("click", abrirNovo);
+document.getElementById("salvarNovo").addEventListener("click", salvarNovo);
+
 /* async function criarProduto(produto){
 
  await fetch(`${AUTH_URL}/Produtos`,{
