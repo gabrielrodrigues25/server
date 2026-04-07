@@ -66,7 +66,7 @@ dados.forEach(item => {
   linha += `
     <td>
       <button id="editarRegistro">Editar</button>
-      <button id="deletarRegistro">Excluir</button>
+      <button id="deletarRegistro"">Excluir</button>
     </td>
   `;
 
@@ -74,10 +74,21 @@ dados.forEach(item => {
 
   body.innerHTML += linha;
 
-  document.getElementById("editarRegistro").addEventListener("click", editarRegistroLoja(this));
-  document.getElementById("deletarRegistro").addEventListener("click", deletarRegistroLoja(item.id));
-
 });
+
+// adicionar eventos depois que a tabela é criada
+  body.querySelectorAll(".editarRegistro").forEach(btn => {
+    btn.addEventListener("click", function () {
+      editarRegistroLoja(this);
+    });
+  });
+
+  body.querySelectorAll(".deletarRegistro").forEach(btn => {
+    btn.addEventListener("click", function () {
+      const id = this.closest("tr").dataset.id;
+      deletarRegistroLoja(id);
+    });
+  });
 
 }
 
@@ -111,7 +122,12 @@ function editarRegistroLoja(botao){
   });
 
   botao.innerText = "Salvar";
-  botao.onclick = () => salvarRegistroLoja(linha);
+
+  // remover eventos antigos clonando o botão
+  const novoBotao = botao.cloneNode(true);
+  botao.replaceWith(novoBotao);
+
+  novoBotao.addEventListener("click", () => salvarRegistroLoja(linha));
 
 }
 

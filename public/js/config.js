@@ -1,2 +1,2 @@
-window.API_URL = "http://localhost:3000/api";
-window.AUTH_URL = "http://localhost:3000/auth";
+window.API_URL = "https://disp.polealimentos.com.br/api";
+window.AUTH_URL = "https://disp.polealimentos.com.br/auth";

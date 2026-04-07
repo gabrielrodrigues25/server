@@ -123,41 +123,50 @@ function renderizarTabela(dados) {
 
   const colunas = Object.keys(dados[0]);
 
-  // Criar cabeçalho
+  // Cabeçalho
   colunas.forEach(col => {
     head.innerHTML += `<th>${col.toUpperCase()}</th>`;
   });
 
-  head.innerHTML += "<th>AÇÕES</th>"; // coluna nova
+  head.innerHTML += "<th>AÇÕES</th>";
 
-  // Criar linhas
-dados.forEach(item => {
+  // Linhas
+  dados.forEach(item => {
 
-  let linha = `<tr data-id="${item.id}">`;
+    let linha = `<tr data-id="${item.id}">`;
 
-  Object.entries(item).forEach(([chave, valor]) => {
+    Object.entries(item).forEach(([chave, valor]) => {
+      if (chave !== "id") {
+        linha += `<td data-col="${chave}">${valor ?? ""}</td>`;
+      }
+    });
 
-    if(chave !== "id"){
-      linha += `<td data-col="${chave}">${valor ?? ""}</td>`;
-    }
+    linha += `
+      <td>
+        <button class="btnEditar">Editar</button>
+        <button class="btnDeletar">Excluir</button>
+      </td>
+    `;
+
+    linha += "</tr>";
+
+    body.innerHTML += linha;
 
   });
 
-  linha += `
-    <td>
-      <button id="editar">Editar</button>
-      <button id="deletar">Excluir</button>
-    </td>
-  `;
+  // adicionar eventos depois que a tabela é criada
+  body.querySelectorAll(".btnEditar").forEach(btn => {
+    btn.addEventListener("click", function () {
+      editar(this);
+    });
+  });
 
-  linha += "</tr>";
-
-  body.innerHTML += linha;
-
-  document.getElementById("editar").addEventListener("click", editar(this));
-  document.getElementById("deletar").addEventListener("click", deletar(item.id));
-
-});
+  body.querySelectorAll(".btnDeletar").forEach(btn => {
+    btn.addEventListener("click", function () {
+      const id = this.closest("tr").dataset.id;
+      deletar(id);
+    });
+  });
 
 }
 
@@ -191,7 +200,12 @@ function editar(botao){
   });
 
   botao.innerText = "Salvar";
-  botao.onclick = () => salvar(linha);
+
+  // remover eventos antigos clonando o botão
+  const novoBotao = botao.cloneNode(true);
+  botao.replaceWith(novoBotao);
+
+  novoBotao.addEventListener("click", () => salvar(linha));
 
 }
 
@@ -277,6 +291,7 @@ async function salvarNovo(){
 document.getElementById("carregarTab").addEventListener("click", carregarTabelaAPI);
 document.getElementById("abrirNovo").addEventListener("click", abrirNovo);
 document.getElementById("salvarNovo").addEventListener("click", salvarNovo);
+
 
 /* async function criarProduto(produto){
 
