@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function renderizarTabelaLojas(dados) {
-
   const head = document.getElementById("thead");
   const body = document.getElementById("tbody");
 
@@ -37,46 +36,56 @@ function renderizarTabelaLojas(dados) {
   body.innerHTML = "";
 
   if (!dados || dados.length === 0) {
-    body.innerHTML = "<tr><td>Nenhum registro encontrado</td></tr>";
+    body.innerHTML = "<tr><td colspan='100%'>Nenhum registro encontrado</td></tr>";
     return;
   }
 
-  const colunas = Object.keys(dados[0]);
+  const colunas = Object.keys(dados[0]).filter(c => c !== "id");
 
-  // Criar cabeçalho
+  // Criar cabeçalho com filtro
+  let headerHTML = "<tr>";
   colunas.forEach(col => {
-    head.innerHTML += `<th>${col.toUpperCase()}</th>`;
+    headerHTML += `<th>
+      ${col.toUpperCase()}<br>
+      <input type="text" data-col="${col}" placeholder="Filtrar..." style="width: 90%;">
+    </th>`;
   });
+  headerHTML += "<th>Ações</th></tr>";
 
-  head.innerHTML += "<th>AÇÕES</th>"; // coluna nova
+  head.innerHTML = headerHTML;
 
-  // Criar linhas
-dados.forEach(item => {
+  // Função para renderizar linhas filtradas
+  function atualizarLinhas(filtro = {}) {
+    body.innerHTML = "";
 
-  let linha = `<tr data-id="${item.id}">`;
+    const linhasFiltradas = dados.filter(item => {
+      return Object.entries(filtro).every(([col, valor]) => {
+        if (!valor) return true;
+        return String(item[col]).toLowerCase().includes(valor.toLowerCase());
+      });
+    });
 
-  Object.entries(item).forEach(([chave, valor]) => {
-
-    if(chave !== "id"){
-      linha += `<td data-col="${chave}">${valor ?? ""}</td>`;
+    if (linhasFiltradas.length === 0) {
+      body.innerHTML = "<tr><td colspan='100%'>Nenhum registro encontrado</td></tr>";
+      return;
     }
 
-  });
+    linhasFiltradas.forEach(item => {
+      let linha = `<tr data-id="${item.id}">`;
+      colunas.forEach(col => {
+        linha += `<td data-col="${col}">${item[col] ?? ""}</td>`;
+      });
+      linha += `
+        <td>
+          <button class="editarRegistro">Editar</button>
+          <button class="deletarRegistro">Excluir</button>
+        </td>
+      </tr>`;
+      body.innerHTML += linha;
+    });
+  }
 
-  linha += `
-    <td>
-      <button id="editarRegistro">Editar</button>
-      <button id="deletarRegistro"">Excluir</button>
-    </td>
-  `;
-
-  linha += "</tr>";
-
-  body.innerHTML += linha;
-
-});
-
-// adicionar eventos depois que a tabela é criada
+  // adicionar eventos depois que a tabela é criada
   body.querySelectorAll(".editarRegistro").forEach(btn => {
     btn.addEventListener("click", function () {
       editarRegistroLoja(this);
@@ -87,6 +96,20 @@ dados.forEach(item => {
     btn.addEventListener("click", function () {
       const id = this.closest("tr").dataset.id;
       deletarRegistroLoja(id);
+    });
+  });
+
+  // Inicializa tabela com todas as linhas
+  atualizarLinhas();
+
+  // Adiciona evento nos inputs de filtro
+  head.querySelectorAll("input[data-col]").forEach(input => {
+    input.addEventListener("input", () => {
+      const filtro = {};
+      head.querySelectorAll("input[data-col]").forEach(i => {
+        filtro[i.dataset.col] = i.value;
+      });
+      atualizarLinhas(filtro);
     });
   });
 
@@ -146,6 +169,7 @@ async function salvarRegistroLoja(linha){
 
   });
 
+  try {
   await fetch(`${AUTH_URL}/Lojas/${id}`,{
     method:"PUT",
     headers:{
@@ -153,9 +177,12 @@ async function salvarRegistroLoja(linha){
     },
     body: JSON.stringify(dados)
   });
-
-  carregarTabelaAPILojas();
-
+  await carregarTabelaAPILojas();
+  mostrarMensagem("Loja atualizada com sucesso!", "sucesso");
+  } catch (erro) {
+    console.error("Erro ao atualizar loja:", erro);
+    mostrarMensagem("Erro ao atualizar loja", "erro");
+  }
 }
 
 //deletar
@@ -163,11 +190,16 @@ async function deletarRegistroLoja(id){
 
   if(!confirm("Deseja realmente excluir este item?")) return;
 
+  try {
   await fetch(`${AUTH_URL}/Lojas/${id}`,{
     method:"DELETE"
   });
-
-  carregarTabelaAPILojas();
+  await carregarTabelaAPILojas();
+  mostrarMensagem("Loja excluída com sucesso!", "sucesso");
+} catch (erro) {
+    console.error("Erro ao excluir loja:", erro);
+    mostrarMensagem("Erro ao excluir loja", "erro");
+  }
 
 }
 
@@ -195,6 +227,7 @@ async function salvarLoja(){
 
  };
 
+ try {
  await fetch(`${AUTH_URL}/Lojas`,{
   method:"POST",
   headers:{
@@ -202,9 +235,13 @@ async function salvarLoja(){
   },
   body: JSON.stringify(dados)
  });
+  await carregarTabelaAPILojas();
+  mostrarMensagem("Loja registrada com sucesso!", "sucesso");
+} catch (erro) {
+    console.error("Erro ao criar loja:", erro);
+    mostrarMensagem("Erro ao criar loja", "erro");
 
- carregarTabelaAPILojas();
-
+}
 }
 
 document.getElementById("carregarTabLojas").addEventListener("click", carregarTabelaAPILojas);

@@ -109,7 +109,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function renderizarTabela(dados) {
-
   const head = document.getElementById("thead");
   const body = document.getElementById("tbody");
 
@@ -117,57 +116,81 @@ function renderizarTabela(dados) {
   body.innerHTML = "";
 
   if (!dados || dados.length === 0) {
-    body.innerHTML = "<tr><td>Nenhum registro encontrado</td></tr>";
+    body.innerHTML = "<tr><td colspan='100%'>Nenhum registro encontrado</td></tr>";
     return;
   }
 
-  const colunas = Object.keys(dados[0]);
+  const colunas = Object.keys(dados[0]).filter(c => c !== "id");
 
-  // Cabeçalho
+  // Cabeçalho com inputs de filtro
+  let headerHTML = "<tr>";
   colunas.forEach(col => {
-    head.innerHTML += `<th>${col.toUpperCase()}</th>`;
+    headerHTML += `<th>
+      ${col.toUpperCase()}<br>
+      <input type="text" data-col="${col}" placeholder="Filtrar..." style="width: 90%;">
+    </th>`;
   });
+  headerHTML += "<th>Ações</th></tr>";
+  head.innerHTML = headerHTML;
 
-  head.innerHTML += "<th>AÇÕES</th>";
+  // Função para renderizar linhas filtradas
+  function atualizarLinhas(filtro = {}) {
+    body.innerHTML = "";
 
-  // Linhas
-  dados.forEach(item => {
-
-    let linha = `<tr data-id="${item.id}">`;
-
-    Object.entries(item).forEach(([chave, valor]) => {
-      if (chave !== "id") {
-        linha += `<td data-col="${chave}">${valor ?? ""}</td>`;
-      }
+    const linhasFiltradas = dados.filter(item => {
+      return Object.entries(filtro).every(([col, valor]) => {
+        if (!valor) return true;
+        return String(item[col] ?? "").toLowerCase().includes(valor.toLowerCase());
+      });
     });
 
-    linha += `
-      <td>
-        <button class="btnEditar">Editar</button>
-        <button class="btnDeletar">Excluir</button>
-      </td>
-    `;
+    if (linhasFiltradas.length === 0) {
+      body.innerHTML = "<tr><td colspan='100%'>Nenhum registro encontrado</td></tr>";
+      return;
+    }
 
-    linha += "</tr>";
+    linhasFiltradas.forEach(item => {
+      let linha = `<tr data-id="${item.id}">`;
+      colunas.forEach(col => {
+        linha += `<td data-col="${col}">${item[col] ?? ""}</td>`;
+      });
+      linha += `
+        <td>
+          <button class="btnEditar">Editar</button>
+          <button class="btnDeletar">Excluir</button>
+        </td>
+      </tr>`;
+      body.innerHTML += linha;
+    });
 
-    body.innerHTML += linha;
+    // Reatribuir eventos aos botões depois que a tabela é atualizada
+    body.querySelectorAll(".btnEditar").forEach(btn => {
+      btn.addEventListener("click", function () {
+        editar(this);
+      });
+    });
 
-  });
+    body.querySelectorAll(".btnDeletar").forEach(btn => {
+      btn.addEventListener("click", function () {
+        const id = this.closest("tr").dataset.id;
+        deletar(id);
+      });
+    });
+  }
 
-  // adicionar eventos depois que a tabela é criada
-  body.querySelectorAll(".btnEditar").forEach(btn => {
-    btn.addEventListener("click", function () {
-      editar(this);
+  // Inicializa a tabela com todas as linhas
+  atualizarLinhas();
+
+  // Eventos para inputs de filtro
+  head.querySelectorAll("input[data-col]").forEach(input => {
+    input.addEventListener("input", () => {
+      const filtro = {};
+      head.querySelectorAll("input[data-col]").forEach(i => {
+        filtro[i.dataset.col] = i.value;
+      });
+      atualizarLinhas(filtro);
     });
   });
-
-  body.querySelectorAll(".btnDeletar").forEach(btn => {
-    btn.addEventListener("click", function () {
-      const id = this.closest("tr").dataset.id;
-      deletar(id);
-    });
-  });
-
 }
 
 function filtrarTabela() {
@@ -224,6 +247,7 @@ async function salvar(linha){
 
   });
 
+  try {
   await fetch(`${AUTH_URL}/Produtos/${id}`,{
     method:"PUT",
     headers:{
@@ -231,8 +255,13 @@ async function salvar(linha){
     },
     body: JSON.stringify(dados)
   });
-
-  carregarTabelaAPI();
+  await carregarTabelaAPI();
+  mostrarMensagem("Produto atualizado com sucesso!", "sucesso");
+  } catch (erro) {
+    console.error("Erro ao atualizar produto:", erro);
+    mostrarMensagem("Erro ao atualizar produto", "erro");
+  }
+  
 
 }
 
@@ -241,11 +270,16 @@ async function deletar(id){
 
   if(!confirm("Deseja realmente excluir este item?")) return;
 
-  await fetch(`${AUTH_URL}/Produtos/${id}`,{
-    method:"DELETE"
-  });
-
-  carregarTabelaAPI();
+  try {
+    await fetch(`${AUTH_URL}/Produtos/${id}`,{
+      method:"DELETE"
+    });
+    await carregarTabelaAPI();  
+    mostrarMensagem("Produto excluído com sucesso!", "sucesso");
+  } catch (erro) {
+    console.error("Erro ao excluir produto:", erro);
+    mostrarMensagem("Erro ao excluir produto", "erro");
+  }
 
 }
 
@@ -276,6 +310,7 @@ async function salvarNovo(){
 
  };
 
+ try {
  await fetch(`${AUTH_URL}/Produtos`,{
   method:"POST",
   headers:{
@@ -284,8 +319,11 @@ async function salvarNovo(){
   body: JSON.stringify(dados)
  });
 
- carregarTabelaAPI();
-
+ await carregarTabelaAPI();
+  mostrarMensagem("Produto criado com sucesso!", "sucesso");
+} catch (erro) {
+  mostrarMensagem("Erro ao criar produto", "erro");
+  }
 }
 
 document.getElementById("carregarTab").addEventListener("click", carregarTabelaAPI);
