@@ -72,7 +72,7 @@ function renderizarTabelaLojas(dados) {
   });
 
    // Inicializa AnaliticTable após renderizar
-    new AnaliticTable('tabProd');
+    new AnaliticTable('tabLojas');
 
   // Eventos
   body.querySelectorAll(".editarRegistro").forEach(btn => {

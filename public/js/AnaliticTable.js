@@ -251,7 +251,7 @@ export default class AnaliticTable{
            //barra.style.position = "sticky";
            barra.style.position = "relative";
            barra.style.top = "0px";
-           /* barra.style.backgroundColor = "#ffffff"; */
+           barra.style.backgroundColor = "#e5952c"; 
            /* barra.style.borderTop = "2px dashed"; */
            barra.style.marginLeft = "5px";
            barra.style.marginRight = "5px";
@@ -410,7 +410,7 @@ export default class AnaliticTable{
  
        let nofiColumnAtiva = this.createNotificationSpan();
            nofiColumnAtiva.setAttribute("id", `${this.table.id}-column-selected`);
-           nofiColumnAtiva.style.color = "black";
+           nofiColumnAtiva.style.color = "white";
            nofiColumnAtiva.style.backgroundColor = "#ffb555ce";
  
        //criar link de ajuda
@@ -450,7 +450,7 @@ export default class AnaliticTable{
        barra.appendChild(this.createDivisorCommands());
        barra.appendChild(paleta);
        barra.appendChild(this.createDivisorCommands());
-       barra.appendChild(help);
+       /* barra.appendChild(help); */
        barra.appendChild(nameFerramenta);
  
        //adicionar barra antes da tabela
@@ -2107,7 +2107,8 @@ export default class AnaliticTable{
        command.style.cursor = "pointer";
        command.style.marginLeft = "10px";
        command.style.marginTop = "5px";
-       command.style.fontSize = "18px";
+       command.style.fontSize = "22px";
+       command.style.color = "#ffffff";
  
        return command;
  
@@ -2123,8 +2124,8 @@ export default class AnaliticTable{
        divisor.style.marginRight = '5px';
        divisor.style.backgroundColor = "#f3f3e7";
        divisor.style.color = "#f3f3e7";
-       divisor.style.borderLeft = "2px dashed black";
        divisor.innerHTML = "|";
+       divisor.style.fontSize = "20px";
  
        return divisor;
  
@@ -2534,7 +2535,7 @@ export default class AnaliticTable{
        let tbody = this.table.getElementsByTagName("tbody");
        let linhas = tbody[0].getElementsByTagName('tr');
        let commandClearFind = document.querySelector(`.${this.table.id}-command-clear-filter`);
-           commandClearFind.style.color = "black";
+           commandClearFind.style.color = "white";
  
        //validar linhas
        for(let linha of linhas){
@@ -2548,7 +2549,7 @@ export default class AnaliticTable{
        //remover cor vermelha
        for(let column of cabecalho){
  
-          column.style.color = "black";
+          column.style.color = "white";
  
        }
  

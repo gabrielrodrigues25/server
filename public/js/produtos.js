@@ -128,15 +128,15 @@ function renderizarTabela(dados) {
   colunas.forEach(col => {
     headerHTML += `<th>${col.toUpperCase()}</th>`;
   });
-  headerHTML += "<th>Ações</th></tr>";
 
+  headerHTML += "<th>Ações</th></tr>";
   head.innerHTML = headerHTML;
 
   dados.forEach(item => {
     let linha = `<tr data-id="${item.id}">`;
 
     colunas.forEach(col => {
-      linha += `<td>${item[col] ?? ""}</td>`;
+      linha += `<td data-col="${col}">${item[col] ?? ""}</td>`;
     });
 
     linha += `
