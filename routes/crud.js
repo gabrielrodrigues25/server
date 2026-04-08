@@ -1,5 +1,5 @@
 import express from "express";
-import { getListItems, updateListItem, createListItem, deleteListItem } from "../services/sharepointService.js";
+import { getListItems, updateListItem, createListItem, deleteListItem, AllGetListItems } from "../services/sharepointService.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -265,5 +265,64 @@ router.delete("/Lojas/:id", async (req, res) => {
 
 });
 
+//Mapeamento de horários - GET
+
+router.get("/Mapeamento", async (req, res) => {
+
+  try {
+
+    const rede = req.query.rede;
+    const data = req.query.data;
+
+
+    const filtro = `&$filter=${encodeURIComponent(
+      `fields/Rede eq '${rede}' and fields/Data eq '${data}'`
+    )}`;
+
+    const itens = await AllGetListItems("8124c393-ca24-42e1-96ff-1aaa7d789f7f", filtro);
+
+    const registros = itens.map(item => {
+
+  const f = item.fields;
+
+  const datadia = f.Data ? new Date(f.Data).toISOString().split("T")[0] : null;
+  const [ano, mes, dia] = datadia.split("-");
+  const data = `${dia}/${mes}/${ano}`;
+
+  const entrada = f.Entrada
+    ? new Date(f.Entrada).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    : "Sem entrada";
+
+  const saida = f.Saida0
+    ? new Date(f.Saida0).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    : "Sem saída";
+
+  return {
+    rede: f.Rede,
+    loja: f.Loja,
+    data: data,
+    cliente: f.Cliente,
+    matricula: f.Matricula == null ? 0 : f.Matricula,
+    usuario: f.Usu_x00e1_rio == null ? 0 : f.Usu_x00e1_rio,
+    entrada: entrada,
+    saida: saida,
+    duracao: f.Dura_x00e7__x00e3_o == null ? "Sem duração" : f.Dura_x00e7__x00e3_o,
+    id: f.id == null ? 0 : f.id
+  };
+
+});
+    res.json({ registros });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: err.message
+    });
+
+  }
+
+});
 
 export default router;

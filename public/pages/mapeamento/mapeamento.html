@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="icon" href="../../img/icon.png">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <title>Mapeamento</title>
+    
+<!-- Bootstrap -->
+<link rel="stylesheet" href="../../Bootstrap/css/bootstrap.min.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<div id="navbar"></div>
+
+<div class="container mt-4">
+
+    <!-- TÍTULO -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card text-center p-3">
+                <h1>Mapeamento de horários</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="card p-3 mb-3">
+
+        <div class="row g-2">
+
+            <div class="col-md-3 col-12">
+                <select id="filtroRede" class="form-select">
+                    <option value="">Todas as redes</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 col-12">
+                <select id="filtroLoja" class="form-select">
+                    <option value="">Todas as lojas</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 col-12">
+                <input type="date" id="filtroData" class="form-select">
+                </input>
+            </div>
+
+            <div class="col-md-3 col-12 d-flex gap-2">
+                <button id="carregarTabMapeamento" class="btn btn-warning w-100">
+                    Buscar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- TABELA -->
+    <div class="card p-3 mb-5 ">
+
+       <div class="table-responsive">
+
+		<div class="dados-relatorio">
+           <div class="div-tab" id="dadosRecebimento">
+		   
+            <table id="tabMapeamento" class="tabela-dados">
+                <thead>
+                    <tr id="thead"></tr>
+                </thead>
+
+                <tbody id="tbody"></tbody>
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+</div>
+</div>
+
+<!-- LOADER -->
+<div id="loaderGlobal" class="loader-global" style="display:none;">
+  <div class="loader-box">
+    <div class="spinner"></div>
+    <span>Carregando...</span>
+  </div>
+</div>
+
+
+<script src="../../js/config.js"></SCript>
+<script src="../../js/datas.js"></script>
+<script src="../../js/navbar.js"></script>
+<script src="../../js/loader.js"></script>
+<script type="module" src="../../js/mapeamento.js"></script>
+<script type="module" src="../../js/produtos.js"></script>
+<script src="../../Bootstrap/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

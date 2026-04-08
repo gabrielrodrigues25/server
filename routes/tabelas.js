@@ -349,6 +349,37 @@ router.get('/RelatorioBD', async (req, res) => {
 
 /*-----LISTAS SHAREPOINT-----*/
 
+//versão do app
+
+//Produtos da lista formulario
+router.get("/versao", async (req, res) => {
+
+  try {
+
+    const itens = await getListItems("AppVersion");
+
+    if (!itens || itens.length === 0) {
+      return res.json({ versao: null });
+    }
+
+    const ultimaVersao = itens
+      .sort((a, b) => new Date(b.data) - new Date(a.data))[0];
+
+    res.json({
+      versao: ultimaVersao.versao,
+      data: ultimaVersao.data,
+      usuario: ultimaVersao.usuario,
+      id: ultimaVersao.id
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+
+});
+
+
 // Registrar horário de entrada
 router.post("/horario/entrada", async (req, res) => {
   try {
@@ -602,62 +633,6 @@ router.get("/Relatorio", async (req, res) => {
 
 });
 
-// BUSCAR ITENS EM REBAIXA
-router.get("/Rebaixa", async (req, res) => {
-
-  try {
-
-    const loja = req.query.loja;
-    const data = req.query.data;
-
-    console.log(loja, data);
-
-    const filtro = `&$filter=${encodeURIComponent(
-      `fields/field_2 eq '${loja}' and fields/field_3 eq '${data}' and fields/Lista eq 'Rebaixa'`
-    )}`;
-
-    const itens = await AllGetListItems("Relatório", filtro);
-
-    const produtos = itens.map(item => {
-
-      const f = item.fields;
-
-      return {
-        idSharePoint: item.id,
-        rede: f.Title,
-        cliente: f.field_1,
-        loja: f.field_2,
-        data: f.field_3,
-        material: f.field_4,
-        codigo_parceiro: f.C_x00f3_digocliente,
-        ean: f.field_5,
-        descricao: f.field_6,
-        gondola: f.field_8,
-        camara: f.field_9,
-        quantidade: f.field_11,
-        planograma: f.field_12,
-        data_vencimento: f.Datavencimento,
-        dias_vencimento: f.Dias_x0020_para_x0020_vencer,
-        preco: f.Pre_x00e7_o,
-        lista: f.Lista,
-        situacao: f.Situa_x00e7__x00e3_oRebaixa
-      };
-
-    });
-
-    res.json({ Relatorio: produtos });
-
-  } catch (err) {
-
-    console.error(err);
-
-    res.status(500).json({
-      message: err.message
-    });
-
-  }
-
-});
 
 // BUSCAR ITENS DA LISTA PEDIDOS  
 router.get("/Pedidos",  async (req, res) => {

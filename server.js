@@ -46,6 +46,11 @@ app.get("/downloads", verificarSessao, (req, res) => {
   res.sendFile(path.join(process.cwd(), "public/pages/downloads/downloads.html"));
 });
 
+// página downloads
+app.get("/mapeamento", verificarSessao, (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public/pages/mapeamento/mapeamento.html"));
+});
+
 // página lojas
 app.get("/lojas", verificarSessao, (req, res) => {
   res.sendFile(path.join(process.cwd(), "public/pages/lojas/lojas.html"));
