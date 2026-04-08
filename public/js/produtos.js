@@ -1,3 +1,5 @@
+import AnaliticTable from "./AnaliticTable.js";
+
 async function carregarTabelaAPI() {
   mostrarLoader();
 
@@ -122,90 +124,47 @@ function renderizarTabela(dados) {
 
   const colunas = Object.keys(dados[0]).filter(c => c !== "id");
 
-  // Cabeçalho com inputs de filtro
   let headerHTML = "<tr>";
   colunas.forEach(col => {
-    headerHTML += `<th>
-      ${col.toUpperCase()}<br>
-      <input type="text" data-col="${col}" placeholder="Filtrar..." style="width: 90%;">
-    </th>`;
+    headerHTML += `<th>${col.toUpperCase()}</th>`;
   });
   headerHTML += "<th>Ações</th></tr>";
+
   head.innerHTML = headerHTML;
 
-  // Função para renderizar linhas filtradas
-  function atualizarLinhas(filtro = {}) {
-    body.innerHTML = "";
+  dados.forEach(item => {
+    let linha = `<tr data-id="${item.id}">`;
 
-    const linhasFiltradas = dados.filter(item => {
-      return Object.entries(filtro).every(([col, valor]) => {
-        if (!valor) return true;
-        return String(item[col] ?? "").toLowerCase().includes(valor.toLowerCase());
-      });
+    colunas.forEach(col => {
+      linha += `<td>${item[col] ?? ""}</td>`;
     });
 
-    if (linhasFiltradas.length === 0) {
-      body.innerHTML = "<tr><td colspan='100%'>Nenhum registro encontrado</td></tr>";
-      return;
-    }
+    linha += `
+      <td>
+        <button class="btnEditar">Editar</button>
+        <button class="btnDeletar">Excluir</button>
+      </td>
+    </tr>`;
 
-    linhasFiltradas.forEach(item => {
-      let linha = `<tr data-id="${item.id}">`;
-      colunas.forEach(col => {
-        linha += `<td data-col="${col}">${item[col] ?? ""}</td>`;
-      });
-      linha += `
-        <td>
-          <button class="btnEditar">Editar</button>
-          <button class="btnDeletar">Excluir</button>
-        </td>
-      </tr>`;
-      body.innerHTML += linha;
-    });
-
-    // Reatribuir eventos aos botões depois que a tabela é atualizada
-    body.querySelectorAll(".btnEditar").forEach(btn => {
-      btn.addEventListener("click", function () {
-        editar(this);
-      });
-    });
-
-    body.querySelectorAll(".btnDeletar").forEach(btn => {
-      btn.addEventListener("click", function () {
-        const id = this.closest("tr").dataset.id;
-        deletar(id);
-      });
-    });
-  }
-
-  // Inicializa a tabela com todas as linhas
-  atualizarLinhas();
-
-  // Eventos para inputs de filtro
-  head.querySelectorAll("input[data-col]").forEach(input => {
-    input.addEventListener("input", () => {
-      const filtro = {};
-      head.querySelectorAll("input[data-col]").forEach(i => {
-        filtro[i.dataset.col] = i.value;
-      });
-      atualizarLinhas(filtro);
-    });
-  });
-}
-
-function filtrarTabela() {
-
-  const filtro = document.getElementById("filtro").value.toLowerCase();
-  const linhas = document.querySelectorAll("#tbody tr");
-
-  linhas.forEach(linha => {
-
-    const texto = linha.innerText.toLowerCase();
-
-    linha.style.display = texto.includes(filtro) ? "" : "none";
-
+    body.innerHTML += linha;
   });
 
+  // Inicializa AnaliticTable após renderizar
+  new AnaliticTable('tabProd');
+
+    // Eventos
+  body.querySelectorAll(".btnEditar").forEach(btn => {
+    btn.addEventListener("click", function () {
+      editar(this);
+    });
+  });
+
+  body.querySelectorAll(".btnDeletar").forEach(btn => {
+    btn.addEventListener("click", function () {
+      const id = this.closest("tr").dataset.id;
+      deletar(id);
+    });
+  });
 }
 
 //editar 

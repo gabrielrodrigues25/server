@@ -1,3 +1,5 @@
+import AnaliticTable from "./AnaliticTable.js";
+
 async function carregarTabelaAPILojas() {
   mostrarLoader();
 
@@ -42,49 +44,37 @@ function renderizarTabelaLojas(dados) {
 
   const colunas = Object.keys(dados[0]).filter(c => c !== "id");
 
-  // Criar cabeçalho com filtro
+  // Cabeçalho
   let headerHTML = "<tr>";
   colunas.forEach(col => {
-    headerHTML += `<th>
-      ${col.toUpperCase()}<br>
-      <input type="text" data-col="${col}" placeholder="Filtrar..." style="width: 90%;">
-    </th>`;
+    headerHTML += `<th>${col.toUpperCase()}</th>`;
   });
-  headerHTML += "<th>Ações</th></tr>";
 
+  headerHTML += "<th>Ações</th></tr>";
   head.innerHTML = headerHTML;
 
-  // Função para renderizar linhas filtradas
-  function atualizarLinhas(filtro = {}) {
-    body.innerHTML = "";
+  // Linhas
+  dados.forEach(item => {
+    let linha = `<tr data-id="${item.id}">`;
 
-    const linhasFiltradas = dados.filter(item => {
-      return Object.entries(filtro).every(([col, valor]) => {
-        if (!valor) return true;
-        return String(item[col]).toLowerCase().includes(valor.toLowerCase());
-      });
+    colunas.forEach(col => {
+      linha += `<td data-col="${col}">${item[col] ?? ""}</td>`;
     });
 
-    if (linhasFiltradas.length === 0) {
-      body.innerHTML = "<tr><td colspan='100%'>Nenhum registro encontrado</td></tr>";
-      return;
-    }
+    linha += `
+      <td>
+        <button class="editarRegistro">Editar</button>
+        <button class="deletarRegistro">Excluir</button>
+      </td>
+    </tr>`;
 
-    linhasFiltradas.forEach(item => {
-      let linha = `<tr data-id="${item.id}">`;
-      colunas.forEach(col => {
-        linha += `<td data-col="${col}">${item[col] ?? ""}</td>`;
-      });
-      linha += `
-        <td>
-          <button class="editarRegistro">Editar</button>
-          <button class="deletarRegistro">Excluir</button>
-        </td>
-      </tr>`;
-      body.innerHTML += linha;
-    });
+    body.innerHTML += linha;
+  });
 
-  // adicionar eventos depois que a tabela é criada
+   // Inicializa AnaliticTable após renderizar
+    new AnaliticTable('tabProd');
+
+  // Eventos
   body.querySelectorAll(".editarRegistro").forEach(btn => {
     btn.addEventListener("click", function () {
       editarRegistroLoja(this);
@@ -97,37 +87,6 @@ function renderizarTabelaLojas(dados) {
       deletarRegistroLoja(id);
     });
   });
-}
-
-  // Inicializa tabela com todas as linhas
-  atualizarLinhas();
-
-  // Adiciona evento nos inputs de filtro
-  head.querySelectorAll("input[data-col]").forEach(input => {
-    input.addEventListener("input", () => {
-      const filtro = {};
-      head.querySelectorAll("input[data-col]").forEach(i => {
-        filtro[i.dataset.col] = i.value;
-      });
-      atualizarLinhas(filtro);
-    });
-  });
-
-}
-
-function filtrarTabelaLojas() {
-
-  const filtro = document.getElementById("filtro").value.toLowerCase();
-  const linhas = document.querySelectorAll("#tbody tr");
-
-  linhas.forEach(linha => {
-
-    const texto = linha.innerText.toLowerCase();
-
-    linha.style.display = texto.includes(filtro) ? "" : "none";
-
-  });
-
 }
 
 //editar 

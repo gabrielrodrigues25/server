@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="icon" href="../../img/icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <title>Produtos</title>
 <!-- Bootstrap -->
 <link rel="stylesheet" href="../../Bootstrap/css/bootstrap.min.css">
@@ -111,24 +112,29 @@
 </div>
 
 <!-- TABELA -->
-<div class="card p-3">
 
-<div class="table-responsive">
+    <div class="card p-3">
 
-<table class="tabela-dados">
+    <div class="table-responsive">
+        <div class="dados-relatorio">
+            <div class="div-tab" id="dadosRecebimento">
 
-<thead>
-<tr id="thead"></tr>
-</thead>
+            <table id="tabProd" class="tabela-dados">
 
-<tbody id="tbody"></tbody>
+            <thead>
+            <tr id="thead"></tr>
+            </thead>
 
-</table>
+            <tbody id="tbody"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
 
 </div>
-
 </div>
-
 </div>
 
 <!-- LOADER -->
@@ -143,6 +149,6 @@
 <script src="../../Bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../../js/navbar.js"></script>
 <script src="../../js/loader.js"></script>
-<script src="../../js/produtos.js"></script>
+<script type="module" src="../../js/produtos.js"></script>
 </body>
 </html>

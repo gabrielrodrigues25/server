@@ -136,21 +136,19 @@ router.get('/VendasFaturadas', async (req, res) => {
     const result = await pool2.request()
       .input('cliente', cliente)
       .query(`		
--- RESUMO DE VENDAS
-
 WITH ResumoVenda AS (
 
     SELECT 
-         CAST(V.DT_DOC_FATURAMENTO AS DATE)        AS DATA_FATURAMENTO
-        ,CAST(V.N_MATERIAL AS INT)                 AS MATERIAL
+         CAST(V.DT_DOC_FATURAMENTO AS DATE) AS DATA_FATURAMENTO
+        ,CAST(V.N_MATERIAL AS INT) AS MATERIAL
         ,V.ORGANIZACAO
-        ,SUM(CAST(V.QUANTIDADE AS FLOAT))          AS QUANTIDADE
-        ,SUM(CAST(V.VALOR AS FLOAT))               AS VALOR
+        ,SUM(CAST(V.QUANTIDADE AS FLOAT)) AS QUANTIDADE
+        ,SUM(CAST(V.VALOR AS FLOAT)) AS VALOR
 
     FROM dbo.Pole_VW_VendaFaturada V
 
     WHERE 
-        V.TIPO_FATURAMENTO IN ('Z001','Z033')
+        V.TIPO_FATURAMENTO IN ('Z001')
         AND V.EMISSOR_DA_ORDEM = CAST(@cliente AS INT)
         AND V.DT_DOC_FATURAMENTO >= DATEADD(MONTH,-1,GETDATE())
 
@@ -158,65 +156,7 @@ WITH ResumoVenda AS (
          CAST(V.DT_DOC_FATURAMENTO AS DATE)
         ,CAST(V.N_MATERIAL AS INT)
         ,V.ORGANIZACAO
-),
-
-
--- DEVOLUÇÕES
-
-ResumoDevolucao AS (
-
-    SELECT 
-         CAST(V.DT_DOC_FATURAMENTO AS DATE)        AS DATA_FATURAMENTO
-        ,CAST(V.N_MATERIAL AS INT)                 AS MATERIAL
-        ,V.ORGANIZACAO
-        ,SUM(CAST(V.QUANTIDADE AS FLOAT))          AS QUANTIDADE
-        ,SUM(CAST(V.VALOR AS FLOAT))               AS VALOR
-
-    FROM dbo.Pole_VW_VendaFaturada V
-
-    WHERE 
-        V.TIPO_FATURAMENTO IN ('Z002','Z003','Z025','Z030')
-        AND V.TIPO_DOC_VENDAS = 'H'
-        AND V.EMISSOR_DA_ORDEM = CAST(@cliente AS INT)
-        AND V.DT_DOC_FATURAMENTO >= DATEADD(MONTH,-1,GETDATE())
-
-    GROUP BY
-         CAST(V.DT_DOC_FATURAMENTO AS DATE)
-        ,CAST(V.N_MATERIAL AS INT)
-        ,V.ORGANIZACAO
-),
-
--- VENDA LÍQUIDA
-
-VendaLiquida AS (
-
-    SELECT 
-         A.MATERIAL
-        ,A.DATA_FATURAMENTO
-        ,A.ORGANIZACAO
-
-        ,CASE 
-            WHEN B.QUANTIDADE IS NULL 
-            THEN A.QUANTIDADE 
-            ELSE A.QUANTIDADE - B.QUANTIDADE
-        END AS QUANTIDADE
-
-        ,CASE 
-            WHEN B.VALOR IS NULL 
-            THEN A.VALOR
-            ELSE A.VALOR - B.VALOR
-        END AS VALOR
-
-    FROM ResumoVenda A
-
-    LEFT JOIN ResumoDevolucao B
-        ON A.MATERIAL = B.MATERIAL
-        AND A.DATA_FATURAMENTO = B.DATA_FATURAMENTO
-        AND A.ORGANIZACAO = B.ORGANIZACAO
 )
-
-
--- SELECT FINAL
 
 SELECT TOP 100
 
@@ -231,7 +171,7 @@ SELECT TOP 100
     ,CAST(V.QUANTIDADE AS FLOAT) /
         NULLIF(CAST(M.KG_EMBALAGEM AS FLOAT),0) AS CAIXAS
 
-FROM VendaLiquida V
+FROM ResumoVenda V
 
 LEFT JOIN dbo.POLE_FATO_MATERIAIS M
     ON V.MATERIAL = CAST(M.MATERIAL AS INT)
@@ -616,7 +556,7 @@ router.get("/Relatorio", async (req, res) => {
     console.log(loja, data);
 
     const filtro = `&$filter=${encodeURIComponent(
-      `fields/field_2 eq '${loja}' and fields/field_3 eq '${data}'`
+      `fields/field_2 eq '${loja}' and fields/field_3 eq '${data}' and fields/Lista eq 'Relatório'`
     )}`;
 
     const itens = await AllGetListItems("Relatório", filtro);
@@ -642,7 +582,64 @@ router.get("/Relatorio", async (req, res) => {
         data_vencimento: f.Datavencimento,
         dias_vencimento: f.Dias_x0020_para_x0020_vencer,
         preco: f.Pre_x00e7_o,
-        lista: f.lista,
+        lista: f.Lista,
+        situacao: f.Situa_x00e7__x00e3_oRebaixa
+      };
+
+    });
+
+    res.json({ Relatorio: produtos });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: err.message
+    });
+
+  }
+
+});
+
+// BUSCAR ITENS EM REBAIXA
+router.get("/Rebaixa", async (req, res) => {
+
+  try {
+
+    const loja = req.query.loja;
+    const data = req.query.data;
+
+    console.log(loja, data);
+
+    const filtro = `&$filter=${encodeURIComponent(
+      `fields/field_2 eq '${loja}' and fields/field_3 eq '${data}' and fields/Lista eq 'Rebaixa'`
+    )}`;
+
+    const itens = await AllGetListItems("Relatório", filtro);
+
+    const produtos = itens.map(item => {
+
+      const f = item.fields;
+
+      return {
+        idSharePoint: item.id,
+        rede: f.Title,
+        cliente: f.field_1,
+        loja: f.field_2,
+        data: f.field_3,
+        material: f.field_4,
+        codigo_parceiro: f.C_x00f3_digocliente,
+        ean: f.field_5,
+        descricao: f.field_6,
+        gondola: f.field_8,
+        camara: f.field_9,
+        quantidade: f.field_11,
+        planograma: f.field_12,
+        data_vencimento: f.Datavencimento,
+        dias_vencimento: f.Dias_x0020_para_x0020_vencer,
+        preco: f.Pre_x00e7_o,
+        lista: f.Lista,
         situacao: f.Situa_x00e7__x00e3_oRebaixa
       };
 

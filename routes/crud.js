@@ -29,7 +29,7 @@ router.get("/Lojas", async (req, res) => {
       cliente: item.Title,
       promotor: item.Promotor == null ? "Sem promotor" : item.Promotor,
       login: item.field_9 == null ? 0 : item.field_9,
-      situação: item.Situa_x00e7__x00e3_o == "Ativa" ? "Ativa" : "Inativa",
+      situacao: item.Situa_x00e7__x00e3_o == "Ativa" ? "Ativa" : "Inativa",
       disparo: item.Disparo == null ? "Sem disparo" : item.Disparo,
       id: item.id == null ? 0 : item.id
 
