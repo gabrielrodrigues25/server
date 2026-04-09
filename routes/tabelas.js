@@ -349,36 +349,6 @@ router.get('/RelatorioBD', async (req, res) => {
 
 /*-----LISTAS SHAREPOINT-----*/
 
-//versão do app
-
-//Produtos da lista formulario
-router.get("/versao", async (req, res) => {
-
-  try {
-
-    const itens = await getListItems("AppVersion");
-
-    if (!itens || itens.length === 0) {
-      return res.json({ versao: null });
-    }
-
-    const ultimaVersao = itens
-      .sort((a, b) => new Date(b.data) - new Date(a.data))[0];
-
-    res.json({
-      versao: ultimaVersao.versao,
-      data: ultimaVersao.data,
-      usuario: ultimaVersao.usuario,
-      id: ultimaVersao.id
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-
-});
-
 
 // Registrar horário de entrada
 router.post("/horario/entrada", async (req, res) => {
@@ -587,7 +557,7 @@ router.get("/Relatorio", async (req, res) => {
     console.log(loja, data);
 
     const filtro = `&$filter=${encodeURIComponent(
-      `fields/field_2 eq '${loja}' and fields/field_3 eq '${data}' and fields/Lista eq 'Relatório'`
+      `fields/field_2 eq '${loja}' and fields/field_3 eq '${data}'`
     )}`;
 
     const itens = await AllGetListItems("Relatório", filtro);

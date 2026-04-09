@@ -8,6 +8,34 @@ import dotenv from "dotenv";
 dotenv.config();
 const router = express.Router();
 
+//versão do app
+router.get("/versao", async (req, res) => {
+
+  try {
+
+    const itens = await getListItems("AppVersion");
+
+    if (!itens || itens.length === 0) {
+      return res.json({ versao: null });
+    }
+
+    const ultimaVersao = itens
+      .sort((a, b) => new Date(b.data) - new Date(a.data))[0];
+
+    res.json({
+      versao: ultimaVersao.versao,
+      data: ultimaVersao.data,
+      usuario: ultimaVersao.usuario,
+      id: ultimaVersao.id
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+
+});
+
 //  Redirecionar para login Microsoft
 router.get("/microsoft", (req, res) => {
   const params = new URLSearchParams({
