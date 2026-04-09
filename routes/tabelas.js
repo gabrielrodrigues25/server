@@ -387,6 +387,95 @@ router.post("/horario/entrada", async (req, res) => {
   }
 });
 
+// BUSCAR REGISTROS DO USUARIO
+
+router.get("/contagem", async (req, res) => {
+
+  try {
+
+    const loja = req.query.loja;
+    const data = req.query.data;
+
+    const filtro = `&$filter=${encodeURIComponent(
+      `fields/Loja eq '${loja}' and fields/Data eq '${data}'`
+    )}`;
+
+    const itens = await getListItems("8124c393-ca24-42e1-96ff-1aaa7d789f7f", filtro);
+
+    const registro = itens.find(item =>
+      item.loja === loja &&
+      item.data === data &&
+      item.entrada &&
+      item.saida &&
+      item.duracao
+    );
+
+    if (registro) {
+      return res.json({
+        contagem: "realizada"
+      });
+    }
+
+    return res.json({
+      contagem: "nao_realizada"
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: "Erro ao validar contagem" });
+  }
+
+});
+
+/* router.get("/Mapeamento", async (req, res) => {
+
+  try {
+
+    const loja = req.query.Loja;
+    const data = req.query.data;
+
+
+    const filtro = `&$filter=${encodeURIComponent(
+      `fields/Loja eq '${loja}' and fields/Data eq '${data}'`
+    )}`;
+
+    const itens = await AllGetListItems("8124c393-ca24-42e1-96ff-1aaa7d789f7f", filtro);
+
+    const registros = itens.map(item => {
+
+  const f = item.fields;
+
+  const datadia = f.Data ? new Date(f.Data).toISOString().split("T")[0] : null;
+
+
+  return {
+    rede: f.Rede,
+    loja: f.Loja,
+    data: data,
+    cliente: f.Cliente,
+    matricula: f.Matricula == null ? 0 : f.Matricula,
+    usuario: f.Usu_x00e1_rio == null ? 0 : f.Usu_x00e1_rio,
+    entrada: entrada,
+    saida: saida,
+    duracao: f.Dura_x00e7__x00e3_o == null ? "Sem duração" : f.Dura_x00e7__x00e3_o,
+    id: f.id == null ? 0 : f.id
+  };
+
+});
+    res.json({ registros });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: err.message
+    });
+
+  }
+
+}); */
+
 // BUSCAR ITENS DA LISTA LOJAS
 router.get("/Clientes", async (req, res) => {
   try {
