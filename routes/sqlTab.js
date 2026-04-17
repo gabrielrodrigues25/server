@@ -15,13 +15,13 @@ router.get('/Programado', async (req, res) => {
       .input('vendedor', vendedor)
       .query(`		
         SELECT 
-    V.DOCUMENTO_VENDAS AS DOC,
-    V.EMISSOR_ORDEM AS EMISSOR,
-    CAST(V.ROTA AS INT) AS ROTA,
-    CAST(V.PROX_DATA AS DATE) AS "DATA DE REMESSA",
-    CAST(V.DT_CRIACAO_ORDEM AS DATE) AS "DATA DE CRIAÇÃO",
-    C.nmFantasia AS CLIENTE,
-    SUM(V.VALOR) AS VALOR
+    V.DOCUMENTO_VENDAS AS Doc,
+    V.EMISSOR_ORDEM AS Emissor,
+    CAST(V.ROTA AS INT) AS Rota,
+    CAST(V.PROX_DATA AS DATE) AS "Data de Remessa",
+    CAST(V.DT_CRIACAO_ORDEM AS DATE) AS "Data de Criação",
+    C.nmFantasia AS Cliente,
+    SUM(V.VALOR) AS Valor
 FROM Pole_tab_VendaProgra V
 LEFT JOIN POLE_FATO_CLIENTE_NEW C
     ON CAST(V.EMISSOR_ORDEM AS BIGINT) = CAST(C.cdCliente AS BIGINT)

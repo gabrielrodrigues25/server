@@ -106,10 +106,11 @@ router.get("/callback", async (req, res) => {
     if (!email) {
   return res.send("Não foi possível obter email da Microsoft");
 }
+    req.session.logado = true;
     req.session.user = {
-                          email,
-                          microsoft: true
-                        };
+      email,
+      microsoft: true
+    };
 
   return res.redirect("/home");
 

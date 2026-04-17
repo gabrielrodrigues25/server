@@ -175,24 +175,24 @@ function gerarHTML(registros, vendedor) {
 
   registros.forEach(item => {
 
-    const dataOriginal = new Date(item['DATA DE REMESSA']);
-    const dataFormatada = formatarData(item['DATA DE REMESSA']);
-    const chave = `${item.EMISSOR}-${dataOriginal.toISOString()}`;
+    const dataOriginal = new Date(item['Data de Remessa']);
+    const dataFormatada = formatarData(item['Data de Remessa']);
+    const chave = `${item.Emissor}-${dataOriginal.toISOString()}`;
     console.log(chave);
 
     if (!grupos[chave]) {
       grupos[chave] = {
-      emissor: item.EMISSOR,
-      cliente: item.CLIENTE,
-      data: dataOriginal,       // 👈 guarda como Date
-      dataFormatada: dataFormatada, // 👈 só pra exibir
+      emissor: item.Emissor,
+      cliente: item.Cliente,
+      data: dataOriginal,       // guarda como Date
+      dataFormatada: dataFormatada, //só pra exibir
       pedidos: new Set(),
       total: 0
     };
     }
 
-    grupos[chave].pedidos.add(item.DOC);
-    grupos[chave].total += Number(item.VALOR || 0);
+    grupos[chave].pedidos.add(item.Doc);
+    grupos[chave].total += Number(item.Valor || 0);
   });
 
   let linhas = "";
@@ -212,7 +212,7 @@ function gerarHTML(registros, vendedor) {
     });
 
   const totalGeral = registros.reduce((acc, item) => {
-    return acc + Number(item.VALOR || 0);
+    return acc + Number(item.Valor || 0);
   }, 0);
 
   return `
