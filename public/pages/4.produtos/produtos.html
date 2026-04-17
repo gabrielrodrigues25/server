@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="icon" href="../../img/icon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <title>Produtos</title>
+<!-- Bootstrap -->
+<link rel="stylesheet" href="../../css/bootstrap/css/bootstrap.min.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<div id="navbar"></div>
+
+<div class="container mt-4">
+    <!-- TÍTULO -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card text-center p-3">
+                <h1>Produtos</h1>
+            </div>
+        </div>
+    </div>
+
+<div class="card p-3 mb-3">
+
+<!-- FILTROS -->
+<div class="row g-2">
+
+<div class="col-md-3 col-12">
+<select id="filtroRede" class="form-select">
+<option value="">Todas as redes</option>
+</select>
+</div>
+
+<div class="col-md-3 col-12">
+<select id="filtroLoja" class="form-select">
+<option value="">Todas as lojas</option>
+</select>
+</div>
+
+<div class="col-md-3 col-12">
+<select id="filtroProdutos" class="form-select">
+<option value="">Todos os produtos</option>
+</select>
+</div>
+
+<div class="col-md-3 col-12 d-flex gap-2">
+<button id="carregarTab" class="btn btn-warning w-100">Buscar</button>
+<button id="abrirNovo" class="btn btn-success w-100">Novo</button>
+</div>
+
+</div>
+</div>
+
+<!-- FORM NOVO PRODUTO -->
+<div id="formNovo" style="display:none;" class="mb-4">
+
+<div class="row g-2">
+
+<h4>Cadastrar Produto</h4>
+
+<div class="col-md-3 col-12">
+<input type="text" id="loja" class="form-control" placeholder="Loja" required>
+</div>
+
+<div class="col-md-3 col-12">
+<input type="number" id="cliente" class="form-control" placeholder="Cliente" required>
+</div>
+
+<div class="col-md-3 col-12">
+<input type="number" id="codigo_parceiro" class="form-control" placeholder="Código parceiro" required>
+</div>
+
+<div class="col-md-3 col-12">
+<input type="number" id="material" class="form-control" placeholder="Material" required>
+</div>
+
+<div class="col-md-3 col-12">
+<input type="number" id="ean" class="form-control" placeholder="EAN" required>
+</div>
+
+<div class="col-md-3 col-12">
+<input type="text" id="descricao" class="form-control" placeholder="Descrição" required>
+</div>
+
+<div class="col-md-3 col-12">
+<input type="text" id="un_med" class="form-control" placeholder="Un Med" required>
+</div>
+
+<div class="col-md-3 col-12">
+<input type="number" id="un" class="form-control" placeholder="Un" required>
+</div>
+
+<div class="col-md-3 col-12">
+<input type="number" id="qtd_cx" class="form-control" placeholder="Qtd caixa" required>
+</div>
+
+<div class="col-md-3 col-12">
+<input type="text" id="situacao" class="form-control" placeholder="Situação" required>
+</div>
+
+<div class="col-12">
+<button id="salvarNovo" class="btn btn-success">Salvar</button>
+</div>
+
+</div>
+
+</div>
+
+<!-- TABELA -->
+
+    <div class="card p-3">
+
+    <div class="table-responsive">
+        <div class="dados-relatorio">
+            <div class="div-tab" id="dadosRecebimento">
+
+            <table id="tabProd" class="tabela-dados">
+
+            <thead>
+            <tr id="thead"></tr>
+            </thead>
+
+            <tbody id="tbody"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+</div>
+</div>
+
+<!-- LOADER -->
+<div id="loaderGlobal" class="loader-global" style="display:none;">
+  <div class="loader-box">
+    <div class="spinner"></div>
+    <span>Carregando...</span>
+  </div>
+</div>
+
+<script src="../../js/config.js"></SCript>
+<script src="../../css/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../js/navbar.js"></script>
+<script src="../../js/loader.js"></script>
+<script type="module" src="../../pages/4.produtos/js/produtos.js"></script>
+</body>
+</html>

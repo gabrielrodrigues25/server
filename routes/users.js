@@ -4,6 +4,7 @@ import { getListItems } from "../services/sharepointService.js";
 import fetch from "node-fetch";
 import querystring from "querystring";
 import dotenv from "dotenv";
+import crypto from "crypto";
 
 dotenv.config();
 const router = express.Router();
@@ -37,65 +38,84 @@ router.get("/versao", async (req, res) => {
 });
 
 //  Redirecionar para login Microsoft
+
 router.get("/microsoft", (req, res) => {
+  const state = crypto.randomBytes(16).toString("hex");
+
+  req.session.state = state;
+
   const params = new URLSearchParams({
     client_id: process.env.CLIENT_ID,
     response_type: "code",
-    redirect_uri: process.env.REDIRECT_URI, 
+    redirect_uri: process.env.REDIRECT_URI,
     response_mode: "query",
-    scope: "User.Read",
-    state: "12345"
+    scope: "openid profile email User.Read",
+    state
   });
 
-  res.redirect(`https://login.microsoftonline.com/${process.env.TENANT_ID}/oauth2/v2.0/authorize?${params.toString()}`);
+  res.redirect(
+    `https://login.microsoftonline.com/${process.env.TENANT_ID}/oauth2/v2.0/authorize?${params.toString()}`
+  );
 });
 
 // callback do login Microsoft 
 router.get("/callback", async (req, res) => {
-  const code = req.query.code;
-  if (!code) return res.send("Erro: código não recebido.");
+  const { code, state } = req.query;
+
+  if (!code) return res.send("Código não recebido");
+
+  if (state !== req.session.state) {
+    return res.send("State inválido");
+  }
 
   try {
-    // Troca code por token
     const tokenResponse = await fetch(`https://login.microsoftonline.com/${process.env.TENANT_ID}/oauth2/v2.0/token`, {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept": "application/json"
+      },
       body: querystring.stringify({
         client_id: process.env.CLIENT_ID,
         client_secret: process.env.CLIENT_SECRET,
         grant_type: "authorization_code",
         code,
         redirect_uri: process.env.REDIRECT_URI,
-        scope: "User.Read"
+        scope: "openid profile email User.Read"
       })
     });
 
     const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.access_token;
-    if (!accessToken) return res.send("Erro ao obter token!");
+    if (!tokenResponse.ok) {
+      return res.send("Erro ao obter token");
+    }
 
-    // Consulta Graph para pegar e-mail
+    const accessToken = tokenData.access_token;
+
     const userResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
-      headers: { "Authorization": `Bearer ${accessToken}` }
+      headers: { Authorization: `Bearer ${accessToken}` }
     });
 
     const userData = await userResponse.json();
-    const email = userData.mail || userData.userPrincipalName;
 
-    // Validar domínio corporativo
-    if (!email.endsWith(`@${process.env.DOMINIO_CORPORATIVO}`)) {
-      return res.send(`E-mail ${email} não pertence ao domínio corporativo!`);
-    }
+    const email =
+      userData.mail ||
+      userData.userPrincipalName ||
+      userData.preferred_username;
 
-    // Gerar token JWT interno para liberar login normal
-    const tokenInterno = jwt.sign({ email, microsoft: true }, process.env.JWT_SECRET || "chave_secreta", { expiresIn: "8h" });
+    if (!email) {
+  return res.send("Não foi possível obter email da Microsoft");
+}
+    req.session.user = {
+                          email,
+                          microsoft: true
+                        };
 
-    // Redireciona para frontend com token interno
-    res.redirect(`/login?token=${tokenInterno}`);
+  return res.redirect("/home");
 
   } catch (err) {
     console.error(err);
-    res.send("Erro no login com Microsoft!");
+    return res.send("Erro no login Microsoft");
   }
 });
 

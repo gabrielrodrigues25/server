@@ -1,18 +1,21 @@
-import AnaliticTable from "./AnaliticTable.js";
+import AnaliticTable from "../../../js/AnaliticTable.js";
 
-async function carregarTabelaAPILojas() {
+definirTodasDatasHoje();
+
+async function carregarTabelaAPIMapeamento() {
   mostrarLoader();
 
   const loja = document.getElementById("filtroLoja").value;
   const rede = document.getElementById("filtroRede").value;
+  const hoje = document.getElementById("filtroData").value;
 
   try {
 
-    const res = await fetch(`${AUTH_URL}/Lojas?loja=${loja}&rede=${rede}`);
+    const res = await fetch(`${AUTH_URL}/Mapeamento?loja=${loja}&rede=${rede}&data=${hoje}`);
 
     const data = await res.json();
 
-    renderizarTabelaLojas(data.registros);
+    renderizarTabelaMapeamento(data.registros);
     esconderLoader();
 
   } catch (erro) {
@@ -24,13 +27,7 @@ async function carregarTabelaAPILojas() {
 
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-
-  carregarLojas()
-
-});
-
-function renderizarTabelaLojas(dados) {
+function renderizarTabelaMapeamento(dados) {
   const head = document.getElementById("thead");
   const body = document.getElementById("tbody");
 
@@ -53,6 +50,7 @@ function renderizarTabelaLojas(dados) {
   headerHTML += "<th>Ações</th></tr>";
   head.innerHTML = headerHTML;
 
+
   // Linhas
   dados.forEach(item => {
     let linha = `<tr data-id="${item.id}">`;
@@ -72,25 +70,25 @@ function renderizarTabelaLojas(dados) {
   });
 
    // Inicializa AnaliticTable após renderizar
-    new AnaliticTable('tabLojas');
+    new AnaliticTable('tabMapeamento');
 
   // Eventos
   body.querySelectorAll(".editarRegistro").forEach(btn => {
     btn.addEventListener("click", function () {
-      editarRegistroLoja(this);
+      editarRegistroMapeamento(this);
     });
   });
 
   body.querySelectorAll(".deletarRegistro").forEach(btn => {
     btn.addEventListener("click", function () {
       const id = this.closest("tr").dataset.id;
-      deletarRegistroLoja(id);
+      deletarRegistroMapeamento(id);
     });
   });
 }
 
 //editar 
-function editarRegistroLoja(botao){
+function editarRegistroMapeamento(botao){
 
   const linha = botao.closest("tr");
   const tds = linha.querySelectorAll("td[data-col]");
@@ -109,12 +107,12 @@ function editarRegistroLoja(botao){
   const novoBotao = botao.cloneNode(true);
   botao.replaceWith(novoBotao);
 
-  novoBotao.addEventListener("click", () => salvarRegistroLoja(linha));
+  novoBotao.addEventListener("click", () => salvarRegistroMapeamento(linha));
 
 }
 
 //enviar edição
-async function salvarRegistroLoja(linha){
+async function salvarRegistroMapeamento(linha){
 
   const id = linha.dataset.id;
   const inputs = linha.querySelectorAll("td[data-col] input");
@@ -129,83 +127,42 @@ async function salvarRegistroLoja(linha){
   });
 
   try {
-  await fetch(`${AUTH_URL}/Lojas/${id}`,{
+  await fetch(`${AUTH_URL}/Mapeamento/${id}`,{
     method:"PUT",
     headers:{
       "Content-Type":"application/json"
     },
     body: JSON.stringify(dados)
   });
-  await carregarTabelaAPILojas();
-  mostrarMensagem("Loja atualizada com sucesso!", "sucesso");
+  await carregarTabelaAPIMapeamento();
+  mostrarMensagem("Mapeamento atualizado com sucesso!", "sucesso");
   } catch (erro) {
-    console.error("Erro ao atualizar loja:", erro);
-    mostrarMensagem("Erro ao atualizar loja", "erro");
+    console.error("Erro ao atualizar mapeamento:", erro);
+    mostrarMensagem("Erro ao atualizar mapeamento", "erro");
   }
 }
 
 //deletar
-async function deletarRegistroLoja(id){
+async function deletarRegistroMapeamento(id){
 
   if(!confirm("Deseja realmente excluir este item?")) return;
 
   try {
-  await fetch(`${AUTH_URL}/Lojas/${id}`,{
+  await fetch(`${AUTH_URL}/Mapeamento/${id}`,{
     method:"DELETE"
   });
-  await carregarTabelaAPILojas();
-  mostrarMensagem("Loja excluída com sucesso!", "sucesso");
+  await carregarTabelaAPIMapeamento();
+  mostrarMensagem("Horario excluído com sucesso!", "sucesso");
 } catch (erro) {
-    console.error("Erro ao excluir loja:", erro);
-    mostrarMensagem("Erro ao excluir loja", "erro");
+    console.error("Erro ao excluir mapeamento:", erro);
+    mostrarMensagem("Erro ao excluir mapeamento", "erro");
   }
 
 }
 
-//criar 
-function abrirLoja(){
+document.getElementById("carregarTabMapeamento").addEventListener("click", carregarTabelaAPIMapeamento);
 
-if(document.getElementById("formLoja").style.display === "none"){
- document.getElementById("formLoja").style.display = "block";
-} else {
- document.getElementById("formLoja").style.display = "none";
 
-}}
-
-async function salvarLoja(){
-
- const dados = {
-
-  rede: document.getElementById("redeId").value,
-  loja: document.getElementById("lojaId").value,
-  cliente: document.getElementById("clienteId").value,
-  promotor: document.getElementById("promotor").value,
-  login: document.getElementById("login").value,
-  situacao: document.getElementById("situacaoId").value,
-  disparo: document.getElementById("disparo").value
-
- };
-
- try {
- await fetch(`${AUTH_URL}/Lojas`,{
-  method:"POST",
-  headers:{
-   "Content-Type":"application/json"
-  },
-  body: JSON.stringify(dados)
- });
-  await carregarTabelaAPILojas();
-  mostrarMensagem("Loja registrada com sucesso!", "sucesso");
-} catch (erro) {
-    console.error("Erro ao criar loja:", erro);
-    mostrarMensagem("Erro ao criar loja", "erro");
-
-}
-}
-
-document.getElementById("carregarTabLojas").addEventListener("click", carregarTabelaAPILojas);
-document.getElementById("abrirNovoLoja").addEventListener("click", abrirLoja);
-document.getElementById("salvarNovaLoja").addEventListener("click", salvarLoja);
 
 /* async function criarProduto(produto){
 

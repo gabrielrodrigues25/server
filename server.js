@@ -3,6 +3,8 @@ import cors from "cors";
 import sharepointRoutes from "./routes/tabelas.js";
 import users from "./routes/users.js";
 import crud from "./routes/crud.js";
+import saptab from "./routes/saptab.js";
+import sqlTab from "./routes/sqlTab.js";
 import helmet from "helmet";
 import { verificarToken } from "./middlewares/autenticacao.js";
 import path from "path";
@@ -24,47 +26,59 @@ app.use(helmet());
 
 // servir arquivos estáticos (HTML, CSS, APK etc)
 app.use(session({
-    secret: "segredo_api",
-    resave: false,
-    saveUninitialized: true
+  secret: "segredo_api",
+  resave: false,
+  saveUninitialized: false
 }));
 
 app.use(express.static("public"));
 
 // página inicial (login)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "public/pages/home/index.html"));
+  res.sendFile(path.join(process.cwd(), "public/index.html"));
 });
 
 // página home
 app.get("/home", verificarSessao, (req, res) => {
-  res.sendFile(path.join(process.cwd(), "public/pages/home/home.html"));
+  res.sendFile(path.join(process.cwd(), "public/pages/1.home/home.html"));
 });
 
 // página downloads
 app.get("/downloads", verificarSessao, (req, res) => {
-  res.sendFile(path.join(process.cwd(), "public/pages/downloads/downloads.html"));
-});
-
-// página downloads
-app.get("/mapeamento", verificarSessao, (req, res) => {
-  res.sendFile(path.join(process.cwd(), "public/pages/mapeamento/mapeamento.html"));
+  res.sendFile(path.join(process.cwd(), "public/pages/2.downloads/downloads.html"));
 });
 
 // página lojas
 app.get("/lojas", verificarSessao, (req, res) => {
-  res.sendFile(path.join(process.cwd(), "public/pages/lojas/lojas.html"));
+  res.sendFile(path.join(process.cwd(), "public/pages/3.lojas/lojas.html"));
 });
 
 // página lojas
 app.get("/produtos", verificarSessao, (req, res) => {
-  res.sendFile(path.join(process.cwd(), "public/pages/produtos/produtos.html"));
+  res.sendFile(path.join(process.cwd(), "public/pages/4.produtos/produtos.html"));
 });
 
-app.use("/auth", users, crud);
+// página mapeamento
+app.get("/mapeamento", verificarSessao, (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public/pages/5.mapeamento/mapeamento.html"));
+});
+
+// página mapeamento
+app.get("/contagens", verificarSessao, (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public/pages/6.contagens/contagens.html"));
+});
+
+// página pedidos programados
+app.get("/programados", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public/pages/7.programados/programados.html"));
+});
+
+app.use("/auth", users, crud, sqlTab);
 
 // API protegida por token
 app.use("/api", verificarToken, sharepointRoutes);
+
+app.use("/sap", saptab)
 
 const PORT = process.env.PORT || 3000;
 

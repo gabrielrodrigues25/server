@@ -4,9 +4,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="../../img/icon.png">
+<link rel="icon" href="./img/icon.png">
 <!-- Bootstrap -->
-<link rel="stylesheet" href="../../Bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="./css/bootstrap/css/bootstrap.min.css">
 
 <title>Login DISP</title>
 
@@ -44,24 +44,13 @@ body{
 
 <h2>Acesso ao DISP</h2>
 
-<form action="/auth/log" method="POST">
-
-<div class="mb-3">
-<input type="text" name="usuario" class="form-control" placeholder="Usuário" required>
-</div>
-
-<div class="mb-3">
-<input type="password" name="senha" class="form-control" placeholder="Senha" required>
-</div>
-
-<button type="submit" class="btn btn-success mb-3 w-100">
-Entrar
-</button>
-
-</form>
+  <button id="login" type="submit" class="btn btn-success mb-3 w-100">
+    Entrar com Microsoft
+  </button>
 
 </div>
 
+<script src="./js/login.js"></script>
 </body>
 
 </html>

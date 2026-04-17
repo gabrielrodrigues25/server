@@ -1,4 +1,4 @@
-import AnaliticTable from "./AnaliticTable.js";
+import AnaliticTable from "../../../js/AnaliticTable.js";
 
 async function carregarTabelaAPI() {
   mostrarLoader();

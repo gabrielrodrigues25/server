@@ -1,21 +1,26 @@
-class TabelaAPI {
+export default class TabelaAPI {
   constructor(apiUrl) {
     this.apiUrl = apiUrl; // URL base da API, ex: "https://minhaapi.com/clientes"
     this.registros = [];  // Lista interna de registros
   }
 
   //Carrega todos os registros da tabela
-  async carregar() {
-    try {
-      const response = await fetch(this.apiUrl);
-      if (!response.ok) throw new Error('Erro ao carregar registros');
-      this.registros = await response.json();
-      return this.registros;
-    } catch (error) {
-      console.error(error);
-      return [];
-    }
+async carregar() {
+  try {
+    const response = await fetch(this.apiUrl);
+    if (!response.ok) throw new Error('Erro ao carregar registros');
+
+    const data = await response.json();
+
+    this.registros = data.registros || data; 
+
+    return this.registros;
+
+  } catch (error) {
+    console.error(error);
+    return [];
   }
+}
 
   //Filtra registros por qualquer campo
   filtrar(campo, valor) {

@@ -135,37 +135,45 @@ router.get('/VendasFaturadas', async (req, res) => {
 
     const result = await pool2.request()
       .input('cliente', cliente)
-      .query(`		
-WITH ResumoVenda AS (
+      .query(`WITH ResumoVenda AS (
 
     SELECT 
-         CAST(V.EMISSOR_DA_ORDEM AS INT) AS EMISSOR
-        ,CAST(V.DT_DOC_FATURAMENTO AS DATE) AS DATA_FATURAMENTO
+         CAST(V.DT_DOC_FATURAMENTO AS DATE) AS DATA_FATURAMENTO
         ,CAST(V.N_MATERIAL AS INT) AS MATERIAL
         ,V.ORGANIZACAO
+        ,CAST(V.EMISSOR_DA_ORDEM AS INT) AS EMISSOR
+        ,CAST(V.DT_ENT AS DATE) AS DATA_ENTREGA_MERC
         ,SUM(CAST(V.QUANTIDADE AS FLOAT)) AS QUANTIDADE
         ,SUM(CAST(V.VALOR AS FLOAT)) AS VALOR
 
     FROM dbo.Pole_VW_VendaFaturada V
 
     WHERE 
-        V.TIPO_FATURAMENTO IN ('Z001')
-        AND V.EMISSOR_DA_ORDEM = CAST(@cliente AS INT)
+
+        V.TIPO_FATURAMENTO IN ('Z001','Z033')
+
+        AND (V.TIPO_DOC_VENDAS IS NULL OR V.TIPO_DOC_VENDAS <> 'H')
+
+        AND CAST(V.EMISSOR_DA_ORDEM AS INT) = CAST(@cliente AS INT)
+        AND V.DT_DOCUMENTO_VENDAS <> V.DT_FAT_CRIACAO
         AND V.DT_DOC_FATURAMENTO >= DATEADD(MONTH,-1,GETDATE())
 
     GROUP BY
          CAST(V.DT_DOC_FATURAMENTO AS DATE)
-        ,CAST(V.N_MATERIAL AS INT)
-        ,CAST(V.EMISSOR_DA_ORDEM AS INT)
+        ,V.EMISSOR_DA_ORDEM
         ,V.ORGANIZACAO
+        ,CAST(V.EMISSOR_DA_ORDEM AS INT)
+        ,CAST(V.N_MATERIAL AS INT)
+        ,CAST(V.DT_ENT AS DATE)
 )
 
 SELECT TOP 100
-
-     V.MATERIAL
-    ,V.EMISSOR
+     
+     V.EMISSOR
+    ,V.MATERIAL
     ,M.DescMaterial
     ,V.DATA_FATURAMENTO
+    ,V.DATA_ENTREGA_MERC
     ,V.ORGANIZACAO
     ,V.QUANTIDADE
     ,V.VALOR
@@ -216,6 +224,7 @@ ORDER BY V.DATA_FATURAMENTO DESC
 
   }
 });
+
 
   //LISTA DE CATEGORIAS
 
@@ -374,7 +383,8 @@ router.post("/horario/entrada", async (req, res) => {
         Entrada: registro.entrada,
         Saida0: registro.saida,
         Dura_x00e7__x00e3_o: registro.duracao,
-        Motivo: registro.motivo
+        Motivo: registro.motivo,
+        Contagem: registro.contagem
       })
     );
 
@@ -622,7 +632,7 @@ router.get("/Produtos", async (req, res) => {
         un: item.field_8,
         qtd_cx: item.field_9,
         situacao: item.field_10,
-		id: item.id
+		    id: item.id
     }));
 
     res.json({ produtos });
@@ -656,6 +666,56 @@ router.get("/ProdutosForm", async (req, res) => {
   }
 });
 
+// BUSCAR ITENS DA LISTA AVARIAS
+
+router.get("/Avarias", async (req, res) => {
+
+  try {
+
+    const loja = req.query.loja;
+    const data = req.query.data;
+
+    console.log(loja, data);
+
+    const filtro = `&$filter=${encodeURIComponent(
+      `fields/Title eq '${loja}' and fields/field_1 eq '${data}'`
+    )}`;
+
+    const itens = await AllGetListItems("Avarias", filtro);
+
+    const produtos = itens.map(item => {
+
+      const f = item.fields;
+
+      return {
+        idSharePoint: item.id,
+        rede: f.Rede,
+        loja: f.Title,
+        data: f.field_1,
+        material: f.field_3,
+        codigo_parceiro: f.C_x00f3_digoFornecedor,
+        ean: f.field_2,
+        descricao: f.field_4,
+        quantidade: f.field_5,
+        data_vencimento: f.Vencimento,
+        motivo: f.field_6
+      };
+
+    });
+
+    res.json({ Relatorio: produtos });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: err.message
+    });
+
+  }
+
+});
 
 // BUSCAR ITENS DA LISTA RELATÓRIO FILTRADOS
 
@@ -894,7 +954,7 @@ router.post("/Pedidos/lote", async (req, res) => {
       Loja: pedido.loja,
       Data: pedido.data,
       Produto: pedido.material,
-	  C_x00f3_digo_x0020_Cliente: pedido.codigo,
+	    C_x00f3_digo_x0020_Cliente: pedido.codigo,
       EAN: pedido.ean,
       Descri_x00e7__x00e3_o: pedido.descricao,
       Estoque_x0020_Fisico: pedido.quantidade,
@@ -948,7 +1008,9 @@ router.post("/Relatorio/Avarias",  async (req, res) => {
       field_4: avarias.descricao,
       field_5: avarias.quantidade,
       field_6: avarias.motivo,
-      C_x00f3_digoFornecedor: avarias.codigo
+      C_x00f3_digoFornecedor: avarias.codigo,
+      Vencimento: avarias.vencimento
+
     }));
 
     const resultados = await Promise.all(promessas);

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="icon" href="../../img/icon.png">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <title>Programados</title>
+    
+<!-- Bootstrap -->
+<link rel="stylesheet" href="../../css/bootstrap/css/bootstrap.min.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<div id="navbar"></div>
+
+<div class="container mt-4">
+
+    <!-- TÍTULO -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card text-center p-3">
+                <h2>Pedidos Programados</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="card p-3 mb-3">
+
+        <div class="row g-2">
+
+            <div class="col-md-3 col-12">
+            <input 
+                  autocomplete="off"
+                  list="lista-vendedor"
+                  type="text"
+                  id="buscarVendedor"
+                  placeholder="Pesquisar vendedor...">
+                  <datalist id="lista-vendedor"></datalist>
+            </div>
+
+            <div class="col-md-3 col-12 d-flex gap-2">
+                <button id="carregarTab" class="btn btn-warning w-100">
+                    Buscar
+                </button>
+
+            </div>
+
+            <div class="col-md-3 col-12 d-flex gap-2">
+                <button id="gerarPDF" class="btn btn-warning w-100">
+                    Gerar PDF
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- TABELA -->
+    <div class="card p-3 mb-5 ">
+
+       <div class="table-responsive">
+
+		<div class="dados-relatorio">
+           <div class="div-tab" id="dadosRecebimento">
+		   
+            <table id="tab" class="tabela-dados">
+                <thead>
+                    <tr id="thead"></tr>
+                </thead>
+
+                <tbody id="tbody"></tbody>
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+</div>
+</div>
+
+<!-- LOADER -->
+<div id="loaderGlobal" class="loader-global" style="display:none;">
+  <div class="loader-box">
+    <div class="spinner"></div>
+    <span>Carregando...</span>
+  </div>
+</div>
+
+
+<script src="../../js/config.js"></SCript>
+<script src="../../js/datas.js"></script>
+<script src="../../js/navbar.js"></script>
+<script src="../../js/loader.js"></script>
+<script type="module" src="../../pages/7.programados/js/programados.js"></script>
+<script src="../../css/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- <script type="module" src="../../js/pdf.min.js"></script> -->
+<script type="module" src="../../js/html2Canvas.js"></script>
+<script type="module" src="../../js/jsPDF.js"></script>
+<!-- <script type="module" src="../../js/html2pdf.bundle.min.js"></script> -->
+</body>
+</html>

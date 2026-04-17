@@ -1,0 +1,241 @@
+import AnaliticTable from "../../../js/AnaliticTable.js";
+
+async function carregarTabelaAPI() {
+  mostrarLoader();
+
+  const loja = document.getElementById("filtroLoja").value;
+  const rede = document.getElementById("filtroRede").value;
+
+  try {
+
+    const res = await fetch(`${AUTH_URL}/Lojas?loja=${loja}&rede=${rede}`);
+
+    const data = await res.json();
+
+    renderizarTabela(data.registros);
+    esconderLoader();
+
+  } catch (erro) {
+
+    console.error("Erro:", erro);
+    esconderLoader();
+
+  }
+
+}
+
+function renderizarTabela(dados) {
+  const head = document.getElementById("thead");
+  const body = document.getElementById("tbody");
+
+  head.innerHTML = "";
+  body.innerHTML = "";
+
+  if (!dados || dados.length === 0) {
+    body.innerHTML = "<tr><td colspan='100%'>Nenhum registro encontrado</td></tr>";
+    return;
+  }
+
+  const colunas = Object.keys(dados[0]).filter(c => c !== "id");
+
+  // Cabeçalho
+  let headerHTML = "<tr>";
+  colunas.forEach(col => {
+    headerHTML += `<th>${col.toUpperCase()}</th>`;
+  });
+
+  headerHTML += "<th>Ações</th></tr>";
+  head.innerHTML = headerHTML;
+
+  // Linhas
+  dados.forEach(item => {
+    let linha = `<tr data-id="${item.id}">`;
+
+    colunas.forEach(col => {
+      linha += `<td data-col="${col}">${item[col] ?? ""}</td>`;
+    });
+
+    linha += `
+      <td>
+        <button class="editarRegistro">Editar</button>
+        <button class="deletarRegistro">Excluir</button>
+      </td>
+    </tr>`;
+
+    body.innerHTML += linha;
+  });
+
+   // Inicializa AnaliticTable após renderizar
+    new AnaliticTable('tabLojas');
+
+  // Eventos
+  body.querySelectorAll(".editarRegistro").forEach(btn => {
+    btn.addEventListener("click", function () {
+      editarRegistro(this);
+    });
+  });
+
+  body.querySelectorAll(".deletarRegistro").forEach(btn => {
+    btn.addEventListener("click", function () {
+      const id = this.closest("tr").dataset.id;
+      deletarRegistro(id);
+    });
+  });
+}
+
+//editar 
+function editarRegistro(botao){
+
+  const linha = botao.closest("tr");
+  const tds = linha.querySelectorAll("td[data-col]");
+
+  tds.forEach(td => {
+
+    const valor = td.innerText;
+
+    td.innerHTML = `<input value="${valor}" style="width:100%">`;
+
+  });
+
+  botao.innerText = "Salvar";
+
+  // remover eventos antigos clonando o botão
+  const novoBotao = botao.cloneNode(true);
+  botao.replaceWith(novoBotao);
+
+  novoBotao.addEventListener("click", () => salvarRegistroLoja(linha));
+
+}
+
+//enviar edição
+async function salvarRegistro(linha){
+
+  const id = linha.dataset.id;
+  const inputs = linha.querySelectorAll("td[data-col] input");
+
+  const dados = {};
+
+  inputs.forEach(input => {
+
+    const coluna = input.closest("td").dataset.col;
+    dados[coluna] = input.value;
+
+  });
+
+  try {
+  await fetch(`${AUTH_URL}/Lojas/${id}`,{
+    method:"PUT",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify(dados)
+  });
+  await carregarTabelaAPI();
+  mostrarMensagem("Loja atualizada com sucesso!", "sucesso");
+  } catch (erro) {
+    console.error("Erro ao atualizar loja:", erro);
+    mostrarMensagem("Erro ao atualizar loja", "erro");
+  }
+}
+
+//deletar
+async function deletarRegistro(id){
+
+  if(!confirm("Deseja realmente excluir este item?")) return;
+
+  try {
+  await fetch(`${AUTH_URL}/Lojas/${id}`,{
+    method:"DELETE"
+  });
+  await carregarTabelaAPI();
+  mostrarMensagem("Loja excluída com sucesso!", "sucesso");
+} catch (erro) {
+    console.error("Erro ao excluir loja:", erro);
+    mostrarMensagem("Erro ao excluir loja", "erro");
+  }
+
+}
+
+//criar 
+function abrirLoja(){
+
+if(document.getElementById("form").style.display === "none"){
+ document.getElementById("form").style.display = "block";
+} else {
+ document.getElementById("form").style.display = "none";
+
+}}
+
+async function salvarLoja(){
+
+ const dados = {
+
+  rede: document.getElementById("redeId").value,
+  loja: document.getElementById("lojaId").value,
+  cliente: document.getElementById("clienteId").value,
+  promotor: document.getElementById("promotor").value,
+  login: document.getElementById("login").value,
+  situacao: document.getElementById("situacaoId").value,
+  disparo: document.getElementById("disparo").value
+
+ };
+
+ try {
+ await fetch(`${AUTH_URL}/Lojas`,{
+  method:"POST",
+  headers:{
+   "Content-Type":"application/json"
+  },
+  body: JSON.stringify(dados)
+ });
+  await carregarTabelaAPI();
+  mostrarMensagem("Loja registrada com sucesso!", "sucesso");
+} catch (erro) {
+    console.error("Erro ao criar loja:", erro);
+    mostrarMensagem("Erro ao criar loja", "erro");
+
+}
+}
+
+document.getElementById("carregarTab").addEventListener("click", carregarTabelaAPI);
+document.getElementById("abrirNovo").addEventListener("click", abrirLoja);
+document.getElementById("salvarNovo").addEventListener("click", salvarLoja);
+
+/* async function criarProduto(produto){
+
+ await fetch(`${AUTH_URL}/Produtos`,{
+
+   method:"POST",
+   headers:{
+     "Content-Type":"application/json"
+   },
+   body:JSON.stringify(produto)
+
+ });
+
+} */
+
+/* //atualizar 
+async function atualizarProduto(id, dados){
+
+ await fetch(`${AUTH_URL}/Produtos/${id}`,{
+
+   method:"PUT",
+   headers:{
+     "Content-Type":"application/json"
+   },
+   body:JSON.stringify(dados)
+
+ });
+
+} */
+
+/* //deletar 
+async function deletarProduto(id){
+
+ await fetch(`${AUTH_URL}/Produtos/${id}`,{
+   method:"DELETE"
+ });
+
+} */
+

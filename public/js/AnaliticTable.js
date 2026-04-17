@@ -1,5 +1,3 @@
-
-
 export default class AnaliticTable{
 
     constructor(idTable, columnsBlock=false){

@@ -1,33 +1,37 @@
-import AnaliticTable from "./AnaliticTable.js";
+import AnaliticTable from "../../../js/AnaliticTable.js";
+import TabelaAPI from "../../../js/classes.js"
 
 definirTodasDatasHoje();
+let tabela;
 
-async function carregarTabelaAPIMapeamento() {
+const loja = document.getElementById("filtroLoja").value;
+const hoje = document.getElementById("filtroData").value;
+ 
+new TabelaAPI(`${AUTH_URL}/Pedidos?loja=${loja}&data=${hoje}`)
+
+async function carregarTabelaAPI() {
   mostrarLoader();
 
   const loja = document.getElementById("filtroLoja").value;
-  const rede = document.getElementById("filtroRede").value;
   const hoje = document.getElementById("filtroData").value;
 
   try {
 
-    const res = await fetch(`${AUTH_URL}/Mapeamento?loja=${loja}&rede=${rede}&data=${hoje}`);
+    tabela = new TabelaAPI(`${AUTH_URL}/Pedidos?loja=${loja}&data=${hoje}`);
 
-    const data = await res.json();
+    const data = await tabela.carregar();
 
-    renderizarTabelaMapeamento(data.registros);
-    esconderLoader();
+    // se sua API já retorna { registros: [] }
+    renderizarTabela(data.registros || data);
 
   } catch (erro) {
-
     console.error("Erro:", erro);
+  } finally {
     esconderLoader();
-
   }
-
 }
 
-function renderizarTabelaMapeamento(dados) {
+function renderizarTabela(dados) {
   const head = document.getElementById("thead");
   const body = document.getElementById("tbody");
 
@@ -70,25 +74,25 @@ function renderizarTabelaMapeamento(dados) {
   });
 
    // Inicializa AnaliticTable após renderizar
-    new AnaliticTable('tabMapeamento');
+    new AnaliticTable('tabContagem');
 
   // Eventos
   body.querySelectorAll(".editarRegistro").forEach(btn => {
     btn.addEventListener("click", function () {
-      editarRegistroMapeamento(this);
+      editarRegistro(this);
     });
   });
 
   body.querySelectorAll(".deletarRegistro").forEach(btn => {
     btn.addEventListener("click", function () {
       const id = this.closest("tr").dataset.id;
-      deletarRegistroMapeamento(id);
+      deletarRegistro(id);
     });
   });
 }
 
 //editar 
-function editarRegistroMapeamento(botao){
+function editarRegistro(botao){
 
   const linha = botao.closest("tr");
   const tds = linha.querySelectorAll("td[data-col]");
@@ -107,12 +111,12 @@ function editarRegistroMapeamento(botao){
   const novoBotao = botao.cloneNode(true);
   botao.replaceWith(novoBotao);
 
-  novoBotao.addEventListener("click", () => salvarRegistroMapeamento(linha));
+  novoBotao.addEventListener("click", () => salvarRegistro(linha));
 
 }
 
 //enviar edição
-async function salvarRegistroMapeamento(linha){
+async function salvarRegistro(linha){
 
   const id = linha.dataset.id;
   const inputs = linha.querySelectorAll("td[data-col] input");
@@ -120,85 +124,43 @@ async function salvarRegistroMapeamento(linha){
   const dados = {};
 
   inputs.forEach(input => {
-
     const coluna = input.closest("td").dataset.col;
     dados[coluna] = input.value;
-
   });
 
   try {
-  await fetch(`${AUTH_URL}/Mapeamento/${id}`,{
-    method:"PUT",
-    headers:{
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify(dados)
-  });
-  await carregarTabelaAPIMapeamento();
-  mostrarMensagem("Mapeamento atualizado com sucesso!", "sucesso");
+
+    await tabela.atualizar(id, dados);
+
+    await carregarTabelaAPI();
+
+    mostrarMensagem("Relatório de contagem atualizado com sucesso!", "sucesso");
+
   } catch (erro) {
-    console.error("Erro ao atualizar mapeamento:", erro);
-    mostrarMensagem("Erro ao atualizar mapeamento", "erro");
+    console.error("Erro ao atualizar:", erro);
+    mostrarMensagem("Erro ao atualizar", "erro");
   }
 }
 
 //deletar
-async function deletarRegistroMapeamento(id){
+async function deletarRegistro(id){
 
   if(!confirm("Deseja realmente excluir este item?")) return;
 
   try {
-  await fetch(`${AUTH_URL}/Mapeamento/${id}`,{
-    method:"DELETE"
-  });
-  await carregarTabelaAPIMapeamento();
-  mostrarMensagem("Horario excluído com sucesso!", "sucesso");
-} catch (erro) {
-    console.error("Erro ao excluir mapeamento:", erro);
-    mostrarMensagem("Erro ao excluir mapeamento", "erro");
-  }
 
+    await tabela.remover(id);
+
+    await carregarTabelaAPI();
+
+    mostrarMensagem("Excluído com sucesso!", "sucesso");
+
+  } catch (erro) {
+    console.error("Erro:", erro);
+    mostrarMensagem("Erro ao excluir", "erro");
+  }
 }
 
-document.getElementById("carregarTabMapeamento").addEventListener("click", carregarTabelaAPIMapeamento);
+document.getElementById("carregarTab").addEventListener("click", carregarTabelaAPI);
 
-
-
-/* async function criarProduto(produto){
-
- await fetch(`${AUTH_URL}/Produtos`,{
-
-   method:"POST",
-   headers:{
-     "Content-Type":"application/json"
-   },
-   body:JSON.stringify(produto)
-
- });
-
-} */
-
-/* //atualizar 
-async function atualizarProduto(id, dados){
-
- await fetch(`${AUTH_URL}/Produtos/${id}`,{
-
-   method:"PUT",
-   headers:{
-     "Content-Type":"application/json"
-   },
-   body:JSON.stringify(dados)
-
- });
-
-} */
-
-/* //deletar 
-async function deletarProduto(id){
-
- await fetch(`${AUTH_URL}/Produtos/${id}`,{
-   method:"DELETE"
- });
-
-} */
 

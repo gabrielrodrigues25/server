@@ -6,10 +6,10 @@
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="icon" href="../../img/icon.png">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <title>Mapeamento</title>
+    <title>Clientes</title>
     
 <!-- Bootstrap -->
-<link rel="stylesheet" href="../../Bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="../../css/bootstrap/css/bootstrap.min.css">
 </head>
 <body>
 
@@ -22,7 +22,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card text-center p-3">
-                <h1>Mapeamento de horários</h1>
+                <h1>Clientes</h1>
             </div>
         </div>
     </div>
@@ -44,31 +44,65 @@
                 </select>
             </div>
 
-            <div class="col-md-3 col-12">
-                <input type="date" id="filtroData" class="form-select">
-                </input>
-            </div>
-
             <div class="col-md-3 col-12 d-flex gap-2">
-                <button id="carregarTabMapeamento" class="btn btn-warning w-100">
+                <button id="carregarTab" class="btn btn-warning w-100">
                     Buscar
                 </button>
 
+                <button id="abrirNovo" class="btn btn-warning w-100">
+                    Nova Loja
+                </button>
             </div>
 
         </div>
 
     </div>
 
+    <div id="form" style="display:none;" class="mb-4">
+
+      <div class="row g-2">
+
+        <h4>Cadastrar Loja</h4>
+
+        <div class="col-md-3 col-12">
+          <input type="text" id="redeId" class="form-control" placeholder="Rede" required>
+        </div>
+        <div class="col-md-3 col-12">
+          <input type="text" id="lojaId" class="form-control" placeholder="Loja" required>
+        </div>
+        <div class="col-md-3 col-12">
+          <input type="text" id="clienteId" class="form-control" placeholder="Cliente" required>
+        </div>
+        <div class="col-md-3 col-12">
+          <input type="text" id="promotor" class="form-control" placeholder="Promotor" required>
+        </div>
+        <div class="col-md-3 col-12">
+          <input type="number" id="login" class="form-control" placeholder="Login" required>
+        </div>
+        <div class="col-md-3 col-12">
+          <input type="text" id="situacaoId" class="form-control" placeholder="Situação" required>
+        </div>
+        <div class="col-md-3 col-12">
+          <input type="text" id="disparo" class="form-control" placeholder="Disparo" required>
+        </div>
+
+        <div class="col-12">
+          <button id="salvarNovo" class="btn btn-success">Salvar</button>
+        </div>
+
+      </div>
+    
+    </div>
+
     <!-- TABELA -->
-    <div class="card p-3 mb-5 ">
+    <div class="card p-3">
 
        <div class="table-responsive">
 
 		<div class="dados-relatorio">
            <div class="div-tab" id="dadosRecebimento">
 		   
-            <table id="tabMapeamento" class="tabela-dados">
+            <table id="tabLojas" class="tabela-dados">
                 <thead>
                     <tr id="thead"></tr>
                 </thead>
@@ -94,11 +128,10 @@
 
 
 <script src="../../js/config.js"></SCript>
-<script src="../../js/datas.js"></script>
 <script src="../../js/navbar.js"></script>
 <script src="../../js/loader.js"></script>
-<script type="module" src="../../js/mapeamento.js"></script>
-<script type="module" src="../../js/produtos.js"></script>
-<script src="../../Bootstrap/js/bootstrap.bundle.min.js"></script>
+<script type="module" src="../../pages/3.lojas/js/lojas.js"></script>
+<script type="module" src="../../pages/4.produtos/js/produtos.js"></script>
+<script src="../../css/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
