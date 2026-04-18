@@ -1,6 +1,6 @@
 import express from "express";
 import { pool1, pool2, poolConnect1, poolConnect2 } from "../auth/banco.js";
-import { AllGetListItems, getListItems, createListItem, updateListItem, deleteListItem } from "../services/sharepointService.js";
+import { AllGetListItems, getListItems, createListItem, updateListItem, deleteListItem, buscarContagemAnterior } from "../services/sharepointService.js";
 
 const router = express.Router();
 
@@ -775,6 +775,20 @@ router.get("/Relatorio", async (req, res) => {
 
 });
 
+// BUSCAR CONTAGEM ANTERIOR
+router.get("/Pedidos/Anterior", async (req, res) => {
+
+  const { loja, data } = req.query;
+
+  try {
+    const dados = await buscarContagemAnterior(loja, data, ACCESS_TOKEN);
+    res.json({ Relatorio: dados });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: "Erro ao buscar contagem anterior" });
+  }
+
+});
 
 // BUSCAR ITENS DA LISTA PEDIDOS  
 router.get("/Pedidos",  async (req, res) => {

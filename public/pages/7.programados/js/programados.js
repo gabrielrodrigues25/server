@@ -4,15 +4,17 @@ definirTodasDatasHoje();
 
 //carregar lista de vendedores
 let listaVendedores = [];
+let dadosClientes = []; // guarda tudo
 
 async function carregarVendedores() {
   try {
     const res = await fetch(`${AUTH_URL}/Vendedores`);
     const data = await res.json();
 
-    // nomes únicos
+    dadosClientes = data.Clientes; //salva tudo
+
     listaVendedores = [...new Set(
-      data.Clientes.map(i => i.NmVendedor)
+      dadosClientes.map(i => i.NmVendedor)
     )];
 
     renderizarVendedores(listaVendedores);
@@ -24,7 +26,7 @@ async function carregarVendedores() {
 
 document.addEventListener("DOMContentLoaded", carregarVendedores);
 
-// 🔹 apenas renderiza no datalist
+// apenas renderiza no datalist
 function renderizarVendedores(lista) {
   const datalist = document.getElementById("lista-vendedor");
 
@@ -33,7 +35,7 @@ function renderizarVendedores(lista) {
     .join("");
 }
 
-// 🔹 filtro enquanto digita
+// filtro enquanto digita
 document.getElementById("buscarVendedor").addEventListener("input", (e) => {
   const texto = e.target.value.toLowerCase();
 
@@ -43,6 +45,42 @@ document.getElementById("buscarVendedor").addEventListener("input", (e) => {
 
   renderizarVendedores(filtrados);
 });
+
+document.getElementById("buscarVendedor").addEventListener("change", (e) => {
+  const vendedorSelecionado = e.target.value;
+  carregarDatasRemessa(vendedorSelecionado);
+});
+
+function carregarDatasRemessa(vendedor) {
+
+  const selectData = document.getElementById("select-data");
+
+  // limpa antes
+  selectData.innerHTML = '<option value="">Selecione a data</option>';
+
+  // filtra pelo vendedor
+  const filtrados = dadosClientes.filter(item =>
+    item.NmVendedor === vendedor
+  );
+
+  // pega datas únicas
+ const datas = [...new Set(
+  filtrados
+    .map(i => i["Data de Remessa"])
+)];
+
+
+  // opcional: ordenar datas
+  datas.sort((a, b) => new Date(a) - new Date(b));
+
+  // renderiza no select
+  datas.forEach(data => {
+    const option = document.createElement("option");
+    option.value = data;
+    option.textContent = formatarData(data); // se quiser formatar
+    selectData.appendChild(option);
+  });
+}
 
 let dadosGlobais = [];
 let vendedorGlobal = "";
@@ -101,7 +139,7 @@ function renderizarTabela(dados) {
   // Cabeçalho
   let headerHTML = "<tr>";
   colunas.forEach(col => {
-    headerHTML += `<th>${col.toUpperCase()}</th>`;
+    headerHTML += `<th>${col}</th>`;
   });
 
   head.innerHTML = headerHTML;

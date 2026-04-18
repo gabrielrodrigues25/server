@@ -128,3 +128,44 @@ export async function deleteListItem(listName, itemId) {
 
   return { message: "Item deletado com sucesso", id: itemId };
 }
+
+export async function buscarContagemAnterior(loja, dataAtual, token) {
+
+  // 1. Buscar data anterior
+  const urlData = `${SITE_URL}/_api/web/lists/getbytitle('Pedidos')/items` +
+    `?$select=Data` +
+    `&$filter=Loja eq '${loja}' and Data lt datetime'${dataAtual}T00:00:00'` +
+    `&$orderby=Data desc` +
+    `&$top=1`;
+
+  const resData = await fetch(urlData, {
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Accept": "application/json;odata=verbose"
+    }
+  });
+
+  const jsonData = await resData.json();
+  const item = jsonData.d.results[0];
+
+  if (!item) {
+    return [];
+  }
+
+  const dataAnterior = item.Data.split("T")[0];
+
+  // 2. Buscar relatório dessa data
+  const urlRelatorio = `${SITE_URL}/_api/web/lists/getbytitle('Pedidos')/items` +
+    `?$filter=Loja eq '${loja}' and Data eq datetime'${dataAnterior}T00:00:00'`;
+
+  const resRel = await fetch(urlRelatorio, {
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Accept": "application/json;odata=verbose"
+    }
+  });
+
+  const jsonRel = await resRel.json();
+
+  return jsonRel.d.results;
+}
