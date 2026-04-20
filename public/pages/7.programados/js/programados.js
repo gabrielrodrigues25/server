@@ -8,7 +8,7 @@ let dadosClientes = []; // guarda tudo
 
 async function carregarVendedores() {
   try {
-    const res = await fetch(`${AUTH_URL}/Vendedores`);
+    const res = await fetch(`${TAB_URL}/Vendedores`);
     const data = await res.json();
 
     dadosClientes = data.Clientes; //salva tudo
@@ -89,7 +89,7 @@ async function carregarTabelaAPI() {
   const dataFormatada = dataRemessa ? dataRemessa.split("T")[0] : "";
 
   try {
-    const res = await fetch(`${AUTH_URL}/Programado?vendedor=${vendedor}&data=${dataFormatada}`);
+    const res = await fetch(`${TAB_URL}/Programado?vendedor=${vendedor}&data=${dataFormatada}`);
     const data = await res.json();
 
     dadosGlobais = data.registros;
@@ -116,11 +116,15 @@ async function carregarTabelaAPIFiltrados() {
   const dataFormatada = dataRemessa ? dataRemessa.split("T")[0] : "";
 
   try {
-    const res = await fetch(`${AUTH_URL}/Programado?vendedor=${vendedor}&data=${dataFormatada}`);
+    const res = await fetch(`${TAB_URL}/Programado?vendedor=${vendedor}&data=${dataFormatada}`);
     const data = await res.json();
+
+    const resTab = await fetch(`${TAB_URL}/ProgramadoTab`);
+    const dataTab = await res.json();
 
     dadosGlobais = data.registros;
     vendedorGlobal = vendedor;
+    console.log(dataTab)
 
     renderizarTabela(dadosGlobais);
 
@@ -435,7 +439,7 @@ document.getElementById("select-data").addEventListener("change", carregarTabela
 
 /* async function criarProduto(produto){
 
- await fetch(`${AUTH_URL}/Produtos`,{
+ await fetch(`${TAB_URL}/Produtos`,{
 
    method:"POST",
    headers:{
@@ -450,7 +454,7 @@ document.getElementById("select-data").addEventListener("change", carregarTabela
 /* //atualizar 
 async function atualizarProduto(id, dados){
 
- await fetch(`${AUTH_URL}/Produtos/${id}`,{
+ await fetch(`${TAB_URL}/Produtos/${id}`,{
 
    method:"PUT",
    headers:{
@@ -465,7 +469,7 @@ async function atualizarProduto(id, dados){
 /* //deletar 
 async function deletarProduto(id){
 
- await fetch(`${AUTH_URL}/Produtos/${id}`,{
+ await fetch(`${TAB_URL}/Produtos/${id}`,{
    method:"DELETE"
  });
 

@@ -73,12 +73,13 @@ app.get("/programados", (req, res) => {
   res.sendFile(path.join(process.cwd(), "public/pages/7.programados/programados.html"));
 });
 
-app.use("/auth", users, crud, sqlTab);
+app.use("/auth", users);
+
+// API protegida por sessão
+app.use("/tab", verificarSessao, crud, sqlTab, saptab)
 
 // API protegida por token
 app.use("/api", verificarToken, sharepointRoutes);
-
-app.use("/sap", saptab)
 
 const PORT = process.env.PORT || 3000;
 

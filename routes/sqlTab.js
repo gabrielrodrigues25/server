@@ -4,6 +4,30 @@ import { AllGetListItems, getListItems, createListItem, updateListItem, deleteLi
 
 const router = express.Router();
 
+router.get('/ProgramadoTab', async (req, res) => {
+  try {
+    await poolConnect2;
+    const result = await pool2.request()
+      .query(`		
+        SELECT TOP 100 * FROM Pole_tab_VendaProgra V
+      `);
+
+    console.log("Linhas:", result.recordset.length);
+
+    res.json({ registros: result.recordset });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: 'Erro ao buscar relatório',
+      error: err.message
+    });
+
+  }
+});
+
 router.get('/Programado', async (req, res) => {
   const vendedor = req.query.vendedor;
   const data = req.query.data ? req.query.data : null;
