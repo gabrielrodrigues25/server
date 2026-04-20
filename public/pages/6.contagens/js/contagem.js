@@ -7,7 +7,7 @@ let tabela;
 const loja = document.getElementById("filtroLoja").value;
 const hoje = document.getElementById("filtroData").value;
  
-new TabelaAPI(`${AUTH_URL}/Pedidos?loja=${loja}&data=${hoje}`)
+new TabelaAPI(`${TAB_URL}/Pedidos?loja=${loja}&data=${hoje}`)
 
 async function carregarTabelaAPI() {
   mostrarLoader();
@@ -17,7 +17,7 @@ async function carregarTabelaAPI() {
 
   try {
 
-    tabela = new TabelaAPI(`${AUTH_URL}/Pedidos?loja=${loja}&data=${hoje}`);
+    tabela = new TabelaAPI(`${TAB_URL}/Pedidos?loja=${loja}&data=${hoje}`);
 
     const data = await tabela.carregar();
 

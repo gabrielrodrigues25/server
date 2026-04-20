@@ -8,7 +8,7 @@ async function carregarTabelaAPI() {
 
   try {
 
-    const res = await fetch(`${AUTH_URL}/Lojas?loja=${loja}&rede=${rede}`);
+    const res = await fetch(`${TAB_URL}/Lojas?loja=${loja}&rede=${rede}`);
 
     const data = await res.json();
 
@@ -123,7 +123,7 @@ async function salvarRegistro(linha){
   });
 
   try {
-  await fetch(`${AUTH_URL}/Lojas/${id}`,{
+  await fetch(`${TAB_URL}/Lojas/${id}`,{
     method:"PUT",
     headers:{
       "Content-Type":"application/json"
@@ -144,7 +144,7 @@ async function deletarRegistro(id){
   if(!confirm("Deseja realmente excluir este item?")) return;
 
   try {
-  await fetch(`${AUTH_URL}/Lojas/${id}`,{
+  await fetch(`${TAB_URL}/Lojas/${id}`,{
     method:"DELETE"
   });
   await carregarTabelaAPI();
@@ -181,7 +181,7 @@ async function salvarLoja(){
  };
 
  try {
- await fetch(`${AUTH_URL}/Lojas`,{
+ await fetch(`${TAB_URL}/Lojas`,{
   method:"POST",
   headers:{
    "Content-Type":"application/json"
@@ -203,7 +203,7 @@ document.getElementById("salvarNovo").addEventListener("click", salvarLoja);
 
 /* async function criarProduto(produto){
 
- await fetch(`${AUTH_URL}/Produtos`,{
+ await fetch(`${TAB_URL}/Produtos`,{
 
    method:"POST",
    headers:{
@@ -218,7 +218,7 @@ document.getElementById("salvarNovo").addEventListener("click", salvarLoja);
 /* //atualizar 
 async function atualizarProduto(id, dados){
 
- await fetch(`${AUTH_URL}/Produtos/${id}`,{
+ await fetch(`${TAB_URL}/Produtos/${id}`,{
 
    method:"PUT",
    headers:{
@@ -233,7 +233,7 @@ async function atualizarProduto(id, dados){
 /* //deletar 
 async function deletarProduto(id){
 
- await fetch(`${AUTH_URL}/Produtos/${id}`,{
+ await fetch(`${TAB_URL}/Produtos/${id}`,{
    method:"DELETE"
  });
 

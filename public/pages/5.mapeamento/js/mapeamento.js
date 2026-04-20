@@ -11,7 +11,7 @@ async function carregarTabelaAPIMapeamento() {
 
   try {
 
-    const res = await fetch(`${AUTH_URL}/Mapeamento?loja=${loja}&rede=${rede}&data=${hoje}`);
+    const res = await fetch(`${TAB_URL}/Mapeamento?loja=${loja}&rede=${rede}&data=${hoje}`);
 
     const data = await res.json();
 
@@ -127,7 +127,7 @@ async function salvarRegistroMapeamento(linha){
   });
 
   try {
-  await fetch(`${AUTH_URL}/Mapeamento/${id}`,{
+  await fetch(`${TAB_URL}/Mapeamento/${id}`,{
     method:"PUT",
     headers:{
       "Content-Type":"application/json"
@@ -148,7 +148,7 @@ async function deletarRegistroMapeamento(id){
   if(!confirm("Deseja realmente excluir este item?")) return;
 
   try {
-  await fetch(`${AUTH_URL}/Mapeamento/${id}`,{
+  await fetch(`${TAB_URL}/Mapeamento/${id}`,{
     method:"DELETE"
   });
   await carregarTabelaAPIMapeamento();
@@ -166,7 +166,7 @@ document.getElementById("carregarTabMapeamento").addEventListener("click", carre
 
 /* async function criarProduto(produto){
 
- await fetch(`${AUTH_URL}/Produtos`,{
+ await fetch(`${TAB_URL}/Produtos`,{
 
    method:"POST",
    headers:{
@@ -181,7 +181,7 @@ document.getElementById("carregarTabMapeamento").addEventListener("click", carre
 /* //atualizar 
 async function atualizarProduto(id, dados){
 
- await fetch(`${AUTH_URL}/Produtos/${id}`,{
+ await fetch(`${TAB_URL}/Produtos/${id}`,{
 
    method:"PUT",
    headers:{
@@ -196,7 +196,7 @@ async function atualizarProduto(id, dados){
 /* //deletar 
 async function deletarProduto(id){
 
- await fetch(`${AUTH_URL}/Produtos/${id}`,{
+ await fetch(`${TAB_URL}/Produtos/${id}`,{
    method:"DELETE"
  });
 

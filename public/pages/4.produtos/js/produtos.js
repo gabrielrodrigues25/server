@@ -8,7 +8,7 @@ async function carregarTabelaAPI() {
 
   try {
 
-    const res = await fetch(`${AUTH_URL}/Produtos?loja=${loja}&produto=${produto}`);
+    const res = await fetch(`${TAB_URL}/Produtos?loja=${loja}&produto=${produto}`);
 
     const data = await res.json();
 
@@ -29,7 +29,7 @@ async function carregarTabelaAPI() {
 async function carregarRedes(){
   try{
 
-    const res = await fetch(`${AUTH_URL}/Lojas`);
+    const res = await fetch(`${TAB_URL}/Lojas`);
     const data = await res.json();
     const selectRede = document.getElementById("filtroRede");
 
@@ -53,7 +53,7 @@ async function carregarRedes(){
 async function carregarLojas(){
   try{
 
-    const res = await fetch(`${AUTH_URL}/Lojas`);
+    const res = await fetch(`${TAB_URL}/Lojas`);
     const data = await res.json();
     const select = document.getElementById("filtroLoja");
     const selectRede = document.getElementById("filtroRede");
@@ -85,7 +85,7 @@ async function carregarProdutos(){
 
   try{
 
-    const res = await fetch(`${AUTH_URL}/Produtos?loja=${loja}`);
+    const res = await fetch(`${TAB_URL}/Produtos?loja=${loja}`);
     const data = await res.json();
     const select = document.getElementById("filtroProdutos");
 
@@ -207,7 +207,7 @@ async function salvar(linha){
   });
 
   try {
-  await fetch(`${AUTH_URL}/Produtos/${id}`,{
+  await fetch(`${TAB_URL}/Produtos/${id}`,{
     method:"PUT",
     headers:{
       "Content-Type":"application/json"
@@ -230,7 +230,7 @@ async function deletar(id){
   if(!confirm("Deseja realmente excluir este item?")) return;
 
   try {
-    await fetch(`${AUTH_URL}/Produtos/${id}`,{
+    await fetch(`${TAB_URL}/Produtos/${id}`,{
       method:"DELETE"
     });
     await carregarTabelaAPI();  
@@ -270,7 +270,7 @@ async function salvarNovo(){
  };
 
  try {
- await fetch(`${AUTH_URL}/Produtos`,{
+ await fetch(`${TAB_URL}/Produtos`,{
   method:"POST",
   headers:{
    "Content-Type":"application/json"
@@ -292,7 +292,7 @@ document.getElementById("salvarNovo").addEventListener("click", salvarNovo);
 
 /* async function criarProduto(produto){
 
- await fetch(`${AUTH_URL}/Produtos`,{
+ await fetch(`${TAB_URL}/Produtos`,{
 
    method:"POST",
    headers:{
@@ -307,7 +307,7 @@ document.getElementById("salvarNovo").addEventListener("click", salvarNovo);
 /* //atualizar 
 async function atualizarProduto(id, dados){
 
- await fetch(`${AUTH_URL}/Produtos/${id}`,{
+ await fetch(`${TAB_URL}/Produtos/${id}`,{
 
    method:"PUT",
    headers:{
@@ -322,7 +322,7 @@ async function atualizarProduto(id, dados){
 /* //deletar 
 async function deletarProduto(id){
 
- await fetch(`${AUTH_URL}/Produtos/${id}`,{
+ await fetch(`${TAB_URL}/Produtos/${id}`,{
    method:"DELETE"
  });
 

@@ -8,7 +8,7 @@ let dadosClientes = []; // guarda tudo
 
 async function carregarVendedores() {
   try {
-    const res = await fetch(`${TAB_URL}/Vendedores`);
+    const res = await fetch(`${AUTH_URL}/Vendedores`);
     const data = await res.json();
 
     dadosClientes = data.Clientes; //salva tudo
@@ -79,6 +79,23 @@ function carregarDatasRemessa(vendedor) {
 let dadosGlobais = [];
 let vendedorGlobal = "";
 
+//CARREGAR TABELA PRA SABER SE EXISTE REGISTRO
+async function carregarTabelaAPIGeral() {
+
+  try {
+    const res = await fetch(`${AUTH_URL}/ProgramadoTab`);
+    const data = await res.json();
+      if (!data || data.length === 0) {
+      alert("Os dados estão sendo atualizados no momento... Tente novamente em instantes");
+      console.log(data)
+      return;
+}
+
+  } catch (erro) {
+    console.error("Erro:", erro);
+  }
+}
+
 //carregar a tabela de pedidos programados
 
 async function carregarTabelaAPI() {
@@ -89,11 +106,13 @@ async function carregarTabelaAPI() {
   const dataFormatada = dataRemessa ? dataRemessa.split("T")[0] : "";
 
   try {
-    const res = await fetch(`${TAB_URL}/Programado?vendedor=${vendedor}&data=${dataFormatada}`);
+    const res = await fetch(`${AUTH_URL}/Programado?vendedor=${vendedor}&data=${dataFormatada}`);
     const data = await res.json();
 
     dadosGlobais = data.registros;
     vendedorGlobal = vendedor;
+
+    await carregarTabelaAPIGeral(); 
 
     renderizarTabela(dadosGlobais);
 
@@ -116,15 +135,11 @@ async function carregarTabelaAPIFiltrados() {
   const dataFormatada = dataRemessa ? dataRemessa.split("T")[0] : "";
 
   try {
-    const res = await fetch(`${TAB_URL}/Programado?vendedor=${vendedor}&data=${dataFormatada}`);
+    const res = await fetch(`${AUTH_URL}/Programado?vendedor=${vendedor}&data=${dataFormatada}`);
     const data = await res.json();
-
-    const resTab = await fetch(`${TAB_URL}/ProgramadoTab`);
-    const dataTab = await res.json();
 
     dadosGlobais = data.registros;
     vendedorGlobal = vendedor;
-    console.log(dataTab)
 
     renderizarTabela(dadosGlobais);
 
@@ -172,25 +187,29 @@ function renderizarTabela(dados) {
   head.innerHTML = headerHTML;
 
   // Linhas
-  dados.forEach(item => {
-    let linha = `<tr data-id="${item.id}">`;
+let linhasHTML = "";
 
-    colunas.forEach(col => {
-      let valor = item[col];
+dados.forEach(item => {
+  let linha = `<tr data-id="${item.id}">`;
 
-    // Detecta e formata
+  colunas.forEach(col => {
+    let valor = item[col];
+
     if (ehData(valor)) {
-    valor = formatarData(valor);
+      valor = formatarData(valor);
     } 
     else if (ehNumero(valor) && col.toLowerCase().includes("valor")) {
       valor = formatarMoeda(valor);
     }
 
-      linha += `<td data-col="${col}">${valor ?? ""}</td>`;
-    });
-
-    body.innerHTML += linha;
+    linha += `<td data-col="${col}">${valor ?? ""}</td>`;
   });
+
+  linha += "</tr>";
+  linhasHTML += linha;
+});
+
+body.innerHTML = linhasHTML;
 
    // Inicializa AnaliticTable após renderizar
     new AnaliticTable('tab');
@@ -439,7 +458,7 @@ document.getElementById("select-data").addEventListener("change", carregarTabela
 
 /* async function criarProduto(produto){
 
- await fetch(`${TAB_URL}/Produtos`,{
+ await fetch(`${AUTH_URL}/Produtos`,{
 
    method:"POST",
    headers:{
@@ -454,7 +473,7 @@ document.getElementById("select-data").addEventListener("change", carregarTabela
 /* //atualizar 
 async function atualizarProduto(id, dados){
 
- await fetch(`${TAB_URL}/Produtos/${id}`,{
+ await fetch(`${AUTH_URL}/Produtos/${id}`,{
 
    method:"PUT",
    headers:{
@@ -469,7 +488,7 @@ async function atualizarProduto(id, dados){
 /* //deletar 
 async function deletarProduto(id){
 
- await fetch(`${TAB_URL}/Produtos/${id}`,{
+ await fetch(`${AUTH_URL}/Produtos/${id}`,{
    method:"DELETE"
  });
 
