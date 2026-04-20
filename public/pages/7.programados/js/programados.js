@@ -14,8 +14,8 @@ async function carregarVendedores() {
     dadosClientes = data.Clientes; //salva tudo
 
     listaVendedores = [...new Set(
-      dadosClientes.map(i => i.NmVendedor)
-    )];
+  dadosClientes.map(i => i.NmVendedor?.trim())
+)];
 
     renderizarVendedores(listaVendedores);
 
@@ -46,38 +46,32 @@ document.getElementById("buscarVendedor").addEventListener("input", (e) => {
   renderizarVendedores(filtrados);
 });
 
-document.getElementById("buscarVendedor").addEventListener("change", (e) => {
-  const vendedorSelecionado = e.target.value;
-  carregarDatasRemessa(vendedorSelecionado);
-});
-
 function carregarDatasRemessa(vendedor) {
 
   const selectData = document.getElementById("select-data");
 
-  // limpa antes
-  selectData.innerHTML = '<option value="">Selecione a data</option>';
+  selectData.innerHTML = '<option value="">Todas as datas</option>';
 
-  // filtra pelo vendedor
-  const filtrados = dadosClientes.filter(item =>
-    item.NmVendedor === vendedor
+  // usa os dados da API de programados
+  const filtrados = dadosGlobais.filter(item =>
+    String(item.Vendedor?.trim()) === String(vendedor?.trim())
   );
 
   // pega datas únicas
- const datas = [...new Set(
-  filtrados
-    .map(i => i["Data de Remessa"])
-)];
+  const datas = [...new Set(
+    filtrados.map(i => i["Data de Remessa"])
+  )];
 
+  console.log(dadosGlobais)
 
-  // opcional: ordenar datas
+  // ordena
   datas.sort((a, b) => new Date(a) - new Date(b));
 
-  // renderiza no select
+  // renderiza
   datas.forEach(data => {
     const option = document.createElement("option");
     option.value = data;
-    option.textContent = formatarData(data); // se quiser formatar
+    option.textContent = formatarData(data);
     selectData.appendChild(option);
   });
 }
@@ -91,15 +85,44 @@ async function carregarTabelaAPI() {
   mostrarLoader();
 
   const vendedor = document.getElementById("buscarVendedor").value;
+  const dataRemessa = document.getElementById("select-data").value;
+  const dataFormatada = dataRemessa ? dataRemessa.split("T")[0] : "";
 
   try {
-    const res = await fetch(`${AUTH_URL}/Programado?vendedor=${vendedor}`);
+    const res = await fetch(`${AUTH_URL}/Programado?vendedor=${vendedor}&data=${dataFormatada}`);
     const data = await res.json();
 
-    dadosGlobais = data.registros;   // guarda os dados
+    dadosGlobais = data.registros;
     vendedorGlobal = vendedor;
 
-    renderizarTabela(data.registros);
+    renderizarTabela(dadosGlobais);
+
+    carregarDatasRemessa(vendedor);
+
+    esconderLoader();
+
+  } catch (erro) {
+    console.error("Erro:", erro);
+    esconderLoader();
+  }
+}
+
+//Carregar tabela sem alterar a data
+async function carregarTabelaAPIFiltrados() {
+  mostrarLoader();
+
+  const vendedor = document.getElementById("buscarVendedor").value;
+  const dataRemessa = document.getElementById("select-data").value;
+  const dataFormatada = dataRemessa ? dataRemessa.split("T")[0] : "";
+
+  try {
+    const res = await fetch(`${AUTH_URL}/Programado?vendedor=${vendedor}&data=${dataFormatada}`);
+    const data = await res.json();
+
+    dadosGlobais = data.registros;
+    vendedorGlobal = vendedor;
+
+    renderizarTabela(dadosGlobais);
 
     esconderLoader();
 
@@ -171,7 +194,19 @@ function renderizarTabela(dados) {
 }
 
 function ehData(valor) {
-  return typeof valor === "string" && !isNaN(Date.parse(valor));
+  if (typeof valor !== "string") return false;
+
+  const formatosValidos = [
+    /^\d{2}\/\d{2}\/\d{4}$/,             // DD/MM/YYYY ou MM/DD/YYYY
+    /^\d{4}-\d{2}-\d{2}$/,               // YYYY-MM-DD
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/, // ISO 8601 com timestamp
+  ];
+
+  const temFormato = formatosValidos.some(regex => regex.test(valor));
+  if (!temFormato) return false;
+
+  const data = new Date(valor);
+  return !isNaN(data.getTime());
 }
 
 function ehNumero(valor) {
@@ -393,6 +428,8 @@ async function baixarPDF() {
 document.getElementById("carregarTab").addEventListener("click", carregarTabelaAPI);
 
 document.getElementById("gerarPDF").addEventListener("click", baixarPDF);
+
+document.getElementById("select-data").addEventListener("change", carregarTabelaAPIFiltrados);
 
 
 

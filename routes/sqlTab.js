@@ -6,15 +6,19 @@ const router = express.Router();
 
 router.get('/Programado', async (req, res) => {
   const vendedor = req.query.vendedor;
+  const data = req.query.data ? req.query.data : null;
   console.log("Cliente no backend:", vendedor);
+  console.log("Data:", data )
   
   try {
     await poolConnect2;
 
     const result = await pool2.request()
       .input('vendedor', vendedor)
+      .input('data', data)
       .query(`		
         SELECT 
+    C.NmVendedor AS Vendedor,
     V.DOCUMENTO_VENDAS AS Doc,
     V.EMISSOR_ORDEM AS Emissor,
     CAST(V.ROTA AS INT) AS Rota,
@@ -25,7 +29,11 @@ router.get('/Programado', async (req, res) => {
 FROM Pole_tab_VendaProgra V
 LEFT JOIN POLE_FATO_CLIENTE_NEW C
     ON CAST(V.EMISSOR_ORDEM AS BIGINT) = CAST(C.cdCliente AS BIGINT)
-WHERE C.NmVendedor = @vendedor       
+WHERE C.NmVendedor = @vendedor 
+AND (
+  @data IS NULL 
+  OR CONVERT(DATE, V.PROX_DATA, 112) = @data
+)
 GROUP BY 
     V.DOCUMENTO_VENDAS,
     V.EMISSOR_ORDEM,

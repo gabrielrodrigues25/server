@@ -129,43 +129,42 @@ export async function deleteListItem(listName, itemId) {
   return { message: "Item deletado com sucesso", id: itemId };
 }
 
-export async function buscarContagemAnterior(loja, dataAtual, token) {
+export async function buscarContagemAnterior(loja, dataAtual) {
 
-  // 1. Buscar data anterior
-  const urlData = `${SITE_URL}/_api/web/lists/getbytitle('Pedidos')/items` +
-    `?$select=Data` +
-    `&$filter=Loja eq '${loja}' and Data lt datetime'${dataAtual}T00:00:00'` +
-    `&$orderby=Data desc` +
+  const token = await getToken();
+  const siteId = await getSiteId(token);
+  const listId = await getListId(token, siteId, "Pedido - Vendedor");
+
+  //1. Buscar a data anterior
+  const urlData =
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items` +
+    `?$expand=fields` +
+    `&$filter=fields/Loja eq '${loja}' and fields/Data lt '${dataAtual}'` +
+    `&$orderby=fields/Data desc` +
     `&$top=1`;
 
-  const resData = await fetch(urlData, {
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "Accept": "application/json;odata=verbose"
-    }
+  const resData = await axios.get(urlData, {
+    headers: { Authorization: `Bearer ${token}` }
   });
 
-  const jsonData = await resData.json();
-  const item = jsonData.d.results[0];
+  const item = resData.data.value[0];
 
   if (!item) {
     return [];
   }
 
-  const dataAnterior = item.Data.split("T")[0];
+  const dataAnterior = item.fields.Data;
 
-  // 2. Buscar relatório dessa data
-  const urlRelatorio = `${SITE_URL}/_api/web/lists/getbytitle('Pedidos')/items` +
-    `?$filter=Loja eq '${loja}' and Data eq datetime'${dataAnterior}T00:00:00'`;
+  //2. Buscar todos os itens dessa data
+  const urlRelatorio =
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items` +
+    `?$expand=fields` +
+    `&$filter=fields/Loja eq '${loja}' and fields/Data eq '${dataAnterior}'`;
 
-  const resRel = await fetch(urlRelatorio, {
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "Accept": "application/json;odata=verbose"
-    }
+  const resRel = await axios.get(urlRelatorio, {
+    headers: { Authorization: `Bearer ${token}` }
   });
 
-  const jsonRel = await resRel.json();
-
-  return jsonRel.d.results;
+  // retorna só os fields (igual seu padrão)
+  return resRel.data.value.map(item => item.fields);
 }

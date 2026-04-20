@@ -781,8 +781,41 @@ router.get("/Pedidos/Anterior", async (req, res) => {
   const { loja, data } = req.query;
 
   try {
-    const dados = await buscarContagemAnterior(loja, data, ACCESS_TOKEN);
-    res.json({ Relatorio: dados });
+    const dados = await buscarContagemAnterior(loja, data);
+
+    const produtos = dados.map(f => {
+
+      return {
+        // se quiser manter id, precisa ajustar lá na função (explico abaixo)
+        rede: f.title,
+        cliente: f.field_1,
+        loja: f.Loja,
+        data: f.Data,
+        material: f.Produto,
+        codigo_parceiro: f.C_x00f3_digo_x0020_Cliente,
+        ean: f.EAN,
+        descricao: f.Descri_x00e7__x00e3_o,
+        custo: f.Custo,
+        estoque: f.Estoque_x0020_Fisico,
+        pedido: f.Pr_x00f3_ximo_x0020_Pedido,
+        total: f.Estoque_x0020_total,
+        venda: f.VendaM_x00e9_dia,
+        planograma: f.Planograma,
+        disparo: f.Quantidade_x0020_do_x0020_dispar,
+        disparo_cx: f.Disparo_x0020_CX,
+        pedido_cx: f.Pedido_x0020_CX,
+        sugestao: f.Sugest_x00e3_o_x0020_Promotor,
+        status: f.STATUS,
+        data_pedido: f.DataPedido,
+        preco: f.Pre_x00e7_o,
+        lista: f.lista,
+        situacao: f.Situa_x00e7__x00e3_oRebaixa
+      };
+
+    });
+
+    res.json({ Relatorio: produtos });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ erro: "Erro ao buscar contagem anterior" });
