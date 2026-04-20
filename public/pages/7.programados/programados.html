@@ -28,43 +28,46 @@
     </div>
 
     <!-- FILTROS -->
-    <div class="card p-3 mb-3">
+<div class="card p-3 mb-3">
 
-        <div class="row g-2">
+    <div class="row g-2 align-items-end">
 
-            <div class="col-md-3 col-12">
+        <div class="col-md-3 col-12" style="text-align: left;font-weight: bold;">
+            <label for="buscarVendedor" class="form-label">Vendedor</label>
             <input 
-                  autocomplete="off"
-                  list="lista-vendedor"
-                  type="text"
-                  id="buscarVendedor"
-                  placeholder="Pesquisar vendedor...">
-                  <datalist id="lista-vendedor"></datalist>
-            </div>
+                autocomplete="off"
+                list="lista-vendedor"
+                type="text"
+                id="buscarVendedor"
+                class="form-control"
+                placeholder="Pesquisar vendedor...">
+            <datalist id="lista-vendedor"></datalist>
+        </div>
 
-            <div class="col-md-3 col-12">
-                <select id="select-data">
-                    <option value="">Todas as datas</option>
-                </select>
-            </div>
+        <div class="col-md-3 col-12" style="text-align: left;font-weight: bold;">
+            <label for="select-data" class="form-label">Data de Remessa</label>
+            <select id="select-data" class="form-select">
+                <option value="">Todas as datas</option>
+            </select>
+        </div>
 
-            <div class="col-md-3 col-12 d-flex gap-2">
-                <button id="carregarTab" class="btn btn-warning w-100">
-                    Buscar
-                </button>
+        <div class="col-md-3 col-12 d-flex gap-2">
+            <button id="carregarTab" class="btn btn-success w-100 d-flex align-items-center justify-content-center gap-1">
+                <span class="material-icons">search</span>
+                Buscar
+            </button>
+        </div>
 
-            </div>
-
-            <div class="col-md-3 col-12 d-flex gap-2">
-                <button id="gerarPDF" class="btn btn-warning w-100">
-                    Gerar PDF
-                </button>
-
-            </div>
-
+        <div class="col-md-3 col-12 d-flex gap-2">
+            <button id="gerarPDF" class="btn btn-danger w-100 d-flex align-items-center justify-content-center gap-1">
+                <span class="material-icons">picture_as_pdf</span>
+                Gerar PDF
+            </button>
         </div>
 
     </div>
+
+</div>
 
     <!-- TABELA -->
     <div class="card p-3 mb-5 ">
