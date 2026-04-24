@@ -86,7 +86,7 @@ router.get("/ClientesBD", async (req, res) => {
   }
 }); */
 
-/* router.get("/Produtos", async (req, res) => {
+router.get("/Produtos", async (req, res) => {
 
   try {
 
@@ -174,7 +174,7 @@ router.get("/ProdutosBD", async (req, res) => {
     console.error("Erro /Produtos:", err);
     res.status(500).json({ error: err.message });
   }
-}); */
+});
 
 router.get("/ProgramadoTab",  async (req, res) => {
   try {
