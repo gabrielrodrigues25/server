@@ -56,6 +56,7 @@ async function carregarLojas(){
     const res = await fetch(`${TAB_URL}/Lojas`);
     const data = await res.json();
     const select = document.getElementById("filtroLoja");
+    const selectCliente = document.getElementById("filtroCliente");
     const selectRede = document.getElementById("filtroRede");
 
     // Limpa as opções existentes
@@ -67,6 +68,16 @@ async function carregarLojas(){
       option.value = loja;
       option.textContent = loja;
       select.appendChild(option);
+    });
+
+    selectCliente.innerHTML = '<option value="">Todos os clientes</option>';
+
+    const cliente = data.registros.filter(i => i.rede === selectRede.value).map(i => i.cliente);
+    cliente.forEach(loja => {
+      const option = document.createElement("option");
+      option.value = loja;
+      option.textContent = loja;
+      selectCliente.appendChild(option);
     });
 
   }catch(erro){

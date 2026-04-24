@@ -73,10 +73,10 @@ app.get("/programados", (req, res) => {
   res.sendFile(path.join(process.cwd(), "public/pages/7.programados/programados.html"));
 });
 
-app.use("/auth", users, sqlTab,);
+app.use("/auth", users, sqlTab);
 
 // API protegida por sessão
-app.use("/tab", verificarSessao, crud, saptab)
+app.use("/tab", /* verificarSessao, */ crud, saptab)
 
 // API protegida por token
 app.use("/api", verificarToken, sharepointRoutes);

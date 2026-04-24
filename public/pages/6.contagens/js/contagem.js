@@ -2,12 +2,174 @@ import AnaliticTable from "../../../js/AnaliticTable.js";
 import TabelaAPI from "../../../js/classes.js"
 
 definirTodasDatasHoje();
-let tabela;
 
-const loja = document.getElementById("filtroLoja").value;
-const hoje = document.getElementById("filtroData").value;
- 
-new TabelaAPI(`${TAB_URL}/Pedidos?loja=${loja}&data=${hoje}`)
+async function carregarTabelaCompleta() {
+  mostrarLoader();
+
+  const loja = document.getElementById("filtroLoja").value;
+  const cliente = document.getElementById("filtroCliente").value;
+  const data = document.getElementById("filtroData").value;
+
+  try {
+    const [estoqueRes, progRes, fatRes] = await Promise.all([
+      fetch(`${TAB_URL}/Pedidos?loja=${loja}&data=${data}`),
+      fetch(`${TAB_URL}/VendasProgramadas?cliente=${cliente}`),
+      fetch(`${TAB_URL}/VendasFaturadas?cliente=${cliente}`)
+    ]);
+
+    const estoqueData = await estoqueRes.json();
+    const progData = await progRes.json();
+    const fatData = await fatRes.json();
+
+    const estoque = estoqueData.registros || [];
+    const programado = progData.registros || [];
+    const faturado = fatData.registros || [];
+
+    const resultado = agruparDados(estoque, programado, faturado);
+    console.log(estoque, programado, faturado)
+
+    renderizarTabela(resultado);
+
+  } catch (erro) {
+    console.error("Erro:", erro);
+  } finally {
+    esconderLoader();
+  }
+}
+
+function agruparDados(estoque, programado, faturado) {
+
+  const mapa = {};
+
+  function getKey(loja, data) {
+    return `${loja}_${data}`;
+  }
+
+  // ESTOQUE
+  estoque.forEach(item => {
+    const key = getKey(item.loja, item.data);
+
+    if (!mapa[key]) {
+      mapa[key] = {
+        loja: item.loja,
+        data: item.data,
+        estoque: 0,
+        programado: 0,
+        faturado: 0
+      };
+    }
+
+    mapa[key].estoque += Number(item.quantidade || 0);
+  });
+
+  // PROGRAMADO
+  programado.forEach(item => {
+    const key = getKey(item.loja, item.data);
+
+    if (!mapa[key]) {
+      mapa[key] = {
+        loja: item.loja,
+        data: item.data,
+        estoque: 0,
+        programado: 0,
+        faturado: 0
+      };
+    }
+
+    mapa[key].programado += Number(item.quantidade || 0);
+  });
+
+  // FATURADO
+  faturado.forEach(item => {
+    const key = getKey(item.loja, item.data);
+
+    if (!mapa[key]) {
+      mapa[key] = {
+        loja: item.loja,
+        data: item.data,
+        estoque: 0,
+        programado: 0,
+        faturado: 0
+      };
+    }
+
+    mapa[key].faturado += Number(item.quantidade || 0);
+  });
+
+  return Object.values(mapa);
+}
+
+async function carregarRedes(){
+  try{
+
+    const res = await fetch(`${TAB_URL}/Lojas`);
+    const data = await res.json();
+    const selectRede = document.getElementById("filtroRede");
+
+    // Limpa as opções existentes
+    selectRede.innerHTML = '<option value="">Todas as redes</option>';
+
+    const redes = [...new Set(data.registros.map(i => i.rede))];
+    redes.forEach(rede => {
+      const option = document.createElement("option");
+      option.value = rede;
+      option.textContent = rede;
+      selectRede.appendChild(option);
+    });
+
+  }catch(erro){
+    console.error("Erro ao carregar lojas:", erro);
+  }
+}
+
+//carregar lista de lojas
+async function carregarLojas(){
+  try{
+
+    const res = await fetch(`${TAB_URL}/Lojas`);
+    const data = await res.json();
+    const select = document.getElementById("filtroLoja");
+    const selectCliente = document.getElementById("filtroCliente");
+    const selectRede = document.getElementById("filtroRede");
+
+    // Limpa as opções existentes
+    select.innerHTML = '<option value="">Todas as lojas</option>';
+
+    const loja = data.registros.filter(i => i.rede === selectRede.value).map(i => i.loja);
+    loja.forEach(loja => {
+      const option = document.createElement("option");
+      option.value = loja;
+      option.textContent = loja;
+      select.appendChild(option);
+    });
+
+    selectCliente.innerHTML = '<option value="">Todos os clientes</option>';
+
+    const cliente = data.registros.filter(i => i.rede === selectRede.value).map(i => i.cliente);
+    cliente.forEach(loja => {
+      const option = document.createElement("option");
+      option.value = loja;
+      option.textContent = loja;
+      selectCliente.appendChild(option);
+    });
+
+  }catch(erro){
+    console.error("Erro ao carregar lojas:", erro);
+  }
+}
+
+document.querySelector("#filtroRede").addEventListener("change", function(){
+  carregarLojas();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  carregarRedes();
+  carregarLojas();
+
+});
+
+let tabela;
 
 async function carregarTabelaAPI() {
   mostrarLoader();
@@ -30,6 +192,50 @@ async function carregarTabelaAPI() {
     esconderLoader();
   }
 }
+
+async function carregarOrdensFaturadas() {
+  mostrarLoader();
+
+  const loja = document.getElementById("filtroCliente").value;
+
+  try {
+
+    tabela = new TabelaAPI(`${TAB_URL}/VendasFaturadas?cliente=${loja}`);
+
+    const data = await tabela.carregar();
+
+    // se sua API já retorna { registros: [] }
+    console.log(data)
+
+  } catch (erro) {
+    console.error("Erro:", erro);
+  } finally {
+    esconderLoader();
+  }
+}
+
+async function carregarOrdensAFaturar() {
+  mostrarLoader();
+
+  const loja = document.getElementById("filtroCliente").value;
+
+  try {
+
+    tabela = new TabelaAPI(`${TAB_URL}/VendasProgramadas?cliente=${loja}`);
+
+    const data = await tabela.carregar();
+
+    // se sua API já retorna { registros: [] }
+    console.log(data)
+
+  } catch (erro) {
+    console.error("Erro:", erro);
+  } finally {
+    esconderLoader();
+  }
+}
+
+
 
 function renderizarTabela(dados) {
   const head = document.getElementById("thead");
@@ -161,6 +367,6 @@ async function deletarRegistro(id){
   }
 }
 
-document.getElementById("carregarTab").addEventListener("click", carregarTabelaAPI);
+document.getElementById("carregarTab").addEventListener("click", carregarTabelaCompleta);
 
 

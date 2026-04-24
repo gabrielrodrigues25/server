@@ -1,8 +1,180 @@
 import express from "express";
-import { pool1, pool2, poolConnect1, poolConnect2 } from "../auth/banco.js";
+import sql from "mssql";
+import { poolDisp, pool1, pool2, poolConnectDisp, poolConnect1, poolConnect2 } from "../auth/banco.js";
 import { AllGetListItems, getListItems, createListItem, updateListItem, deleteListItem } from "../services/sharepointService.js";
 
 const router = express.Router();
+
+/* router.get("/Clientes", async (req, res) => {
+  try {
+
+    const { Promotor } = req.query; // recebe ?Promotor=9080
+
+    const itens = await getListItems("dClientes");
+
+    // filtrar se o parâmetro existir
+    let itensFiltrados = itens;
+
+    if (Promotor) {
+      itensFiltrados = itens.filter(item =>
+        String(item.field_9) === String(Promotor)
+      );
+    }
+
+
+    const lojas = itensFiltrados.map(item => ({
+      rede: item.field_1,
+      fantasia: item.field_2,
+      cliente: item.LinkTitle,
+      cidade: item.field_3,
+      cep: item.field_4,
+      estado: item.field_5,
+      rua: item.field_6,
+      endereco: item.field_8,
+      promotor: item.Promotor,
+      matricula: item.field_9
+    }));
+
+    res.json({ lojas });
+
+  } catch (err) {
+    console.error("Erro /Clientes:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/ClientesBD", async (req, res) => {
+  try {
+
+    const { Promotor } = req.query;
+
+    const request = poolDisp.request();
+
+    let query = `
+      SELECT *
+      FROM dClientes
+      WHERE 1=1
+    `;
+
+    if (Promotor) {
+      query += ` AND Login = @Promotor`;
+      request.input("Promotor", sql.NVarChar, Promotor);
+    }
+
+    const result = await request.query(query);
+
+    const itens = result.recordset;
+
+    const lojas = itens.map(item => ({
+      rede: item.Nome1,           // field_1
+      fantasia: item.NomeFantasia,  // field_2
+      cliente: item.Cliente,         // LinkTitle
+      cidade: item.Cidade,          // field_3
+      cep: item.CodigoPostal,       // field_4
+      estado: item.Regiao,          // field_5
+      rua: item.Rua,                // field_6
+      endereco: item.Bairro,        // field_8
+      promotor: item.Promotor,
+      matricula: item.Login         // field_9
+    }));
+
+    res.json({ lojas });
+
+  } catch (err) {
+    console.error("Erro /Clientes:", err);
+    res.status(500).json({ error: err.message });
+  }
+}); */
+
+/* router.get("/Produtos", async (req, res) => {
+
+  try {
+
+    const { cliente } = req.query;
+
+    const itens = await getListItems("dProdutosA");
+
+    let itensFiltrados = itens;
+
+    if (cliente) {
+      itensFiltrados = itens.filter(item =>
+      String(item.field_2) === String(cliente)
+    );
+    }
+
+    const produtos = itensFiltrados.map(item => ({
+      loja: item.field_1,           
+        cliente: item.field_2,
+        codigo_parceiro: item.field_3,
+        material: item.field_4,
+        ean: item.field_5,
+        descricao: item.field_6,
+        un_med: item.field_7,
+        un: item.field_8,
+        qtd_cx: item.field_9,
+        situacao: item.field_10,
+        id: item.id
+    }));
+
+    res.json({ produtos });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/ProdutosBD", async (req, res) => {
+  try {
+
+    const { cliente } = req.query;
+
+    const request = poolDisp.request();
+
+    let query = `
+      SELECT *
+      FROM dProdutos
+      WHERE 1=1
+    `;
+
+    if (cliente) {
+      query += ` AND Cliente = @cliente`;
+      request.input("Cliente", sql.Int, cliente);
+    }
+
+    const result = await request.query(query);
+
+    const produtos = result.recordset.map(item => ({
+      loja: item.Loja,
+      descricao: item.Descricao,
+      ean: item.Ean, // assumindo ET = etiqueta/EAN
+
+      cliente: item.Cliente,
+      codigo_parceiro: item.CodigoCliente,
+      material: item.Material,
+
+      un: item.Unid,
+      un_med: item.UnidMed,
+      qtd_cx: item.UnidCx,
+
+      situacao: item.Situacao,
+      lojasAtivas: item.LojasAtivas,
+
+      criado: item.Criado,
+      modificado: item.Modificado,
+      criadoPor: item.CriadoPor,
+      modificadoPor: item.ModificadoPor,
+
+      id: item.Id
+    }));
+
+    res.json({ produtos });
+
+  } catch (err) {
+    console.error("Erro /Produtos:", err);
+    res.status(500).json({ error: err.message });
+  }
+}); */
 
 router.get("/ProgramadoTab",  async (req, res) => {
   try {

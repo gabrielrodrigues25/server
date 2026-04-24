@@ -1,5 +1,6 @@
 import express from "express";
-import { pool1, pool2, poolConnect1, poolConnect2 } from "../auth/banco.js";
+import sql from "mssql";
+import { poolDisp, pool1, pool2, poolConnectDisp, poolConnect1, poolConnect2 } from "../auth/banco.js";
 import { AllGetListItems, getListItems, createListItem, updateListItem, deleteListItem, buscarContagemAnterior } from "../services/sharepointService.js";
 
 const router = express.Router();
@@ -11,6 +12,134 @@ router.get("/teste", (req, res) => {
 // Rotas protegidas
 
 /*-----BANCO DE DADOS-----*/
+router.get("/Clientes", async (req, res) => {
+  try {
+
+    const { Promotor } = req.query;
+
+    const request = poolDisp.request();
+
+    let query = `
+      SELECT *
+      FROM dClientes
+      WHERE 1=1
+    `;
+
+    if (Promotor) {
+      query += ` AND Promotor = @Promotor`;
+      request.input("Promotor", sql.NVarChar, Promotor);
+    }
+
+    const result = await request.query(query);
+
+    const itens = result.recordset;
+
+    const lojas = itens.map(item => ({
+      rede: item.Nome1,           // field_1
+      fantasia: item.NomeFantasia,  // field_2
+      cliente: item.Cliente,         // LinkTitle
+      cidade: item.Cidade,          // field_3
+      cep: item.CodigoPostal,       // field_4
+      estado: item.Regiao,          // field_5
+      rua: item.Rua,                // field_6
+      endereco: item.Bairro,        // field_8
+      promotor: item.Promotor,
+      matricula: item.Login         // field_9
+    }));
+
+    res.json({ lojas });
+
+  } catch (err) {
+    console.error("Erro /Clientes:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post("/produtos/status", async (req, res) => {
+  try {
+
+    const { id, ativo } = req.body;
+
+    console.log("Atualizando produto:", id, ativo);
+
+    const request = poolDisp.request();
+
+    request.input("Id", sql.Int, id);
+    request.input("Situacao", sql.NVarChar, ativo);
+
+    await request.query(`
+      UPDATE dProdutos
+      SET 
+        Situacao = @Situacao,
+        Modificado = GETDATE(),
+        ModificadoPor = 'Gabriel'
+      WHERE Id = @Id
+    `);
+
+    res.json({ ok: true });
+
+  } catch (error) {
+
+    console.error("Erro ao atualizar produto:", error);
+
+    res.status(500).json({
+      error: error.message
+    });
+
+  }
+});
+
+router.get("/Produtos", async (req, res) => {
+  try {
+
+    const { cliente } = req.query;
+
+    const request = poolDisp.request();
+
+    let query = `
+      SELECT *
+      FROM dProdutos
+      WHERE 1=1
+    `;
+
+    if (cliente) {
+      query += ` AND Cliente = @cliente`;
+      request.input("Cliente", sql.Int, Cliente);
+    }
+
+    const result = await request.query(query);
+
+    const produtos = result.recordset.map(item => ({
+      loja: item.Loja,
+      descricao: item.Descricao,
+      ean: item.Ean, // assumindo ET = etiqueta/EAN
+
+      cliente: item.Cliente,
+      codigo_parceiro: item.CodigoCliente,
+      material: item.Material,
+
+      un: item.Unid,
+      un_med: item.UnidMed,
+      qtd_cx: item.UnidCx,
+
+      situacao: item.Situacao,
+      lojasAtivas: item.LojasAtivas,
+
+      criado: item.Criado,
+      modificado: item.Modificado,
+      criadoPor: item.CriadoPor,
+      modificadoPor: item.ModificadoPor,
+
+      id: item.Id
+    }));
+
+    res.json({ produtos });
+
+  } catch (err) {
+    console.error("Erro /Produtos:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 //TABELA DE MATERIAS
 
@@ -510,7 +639,7 @@ router.get("/contagem", async (req, res) => {
 }); */
 
 // BUSCAR ITENS DA LISTA LOJAS
-router.get("/Clientes", async (req, res) => {
+router.get("/ClientesShare", async (req, res) => {
   try {
 
     const { Promotor } = req.query; // recebe ?Promotor=9080
@@ -579,7 +708,7 @@ router.get("/Clientes", async (req, res) => {
   }
 }); */
 
-router.post("/produtos/status", async (req, res) => {
+router.post("/produtosShare/status", async (req, res) => {
 
   try {
 
@@ -605,7 +734,7 @@ router.post("/produtos/status", async (req, res) => {
 
 });
 
-router.get("/Produtos", async (req, res) => {
+router.get("/ProdutosShare", async (req, res) => {
 
   try {
 

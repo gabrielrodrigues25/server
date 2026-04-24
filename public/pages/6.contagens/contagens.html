@@ -43,71 +43,21 @@
 </div>
 
 <div class="col-md-3 col-12">
+<select id="filtroCliente" class="form-select">
+<option value="">Todas os clientes</option>
+</select>
+</div>
+
+<div class="col-md-3 col-12">
     <input type="date" id="filtroData" class="form-select">
     </input>
 </div>
 
 <div class="col-md-3 col-12 d-flex gap-2">
 <button id="carregarTab" class="btn btn-warning w-100">Buscar</button>
-<button id="abrirNovo" class="btn btn-success w-100">Novo</button>
 </div>
 
 </div>
-</div>
-
-<!-- FORM NOVO PRODUTO -->
-<div id="formNovo" style="display:none;" class="mb-4">
-
-<div class="row g-2">
-
-<h4>Cadastrar Produto</h4>
-
-<div class="col-md-3 col-12">
-<input type="text" id="loja" class="form-control" placeholder="Loja" required>
-</div>
-
-<div class="col-md-3 col-12">
-<input type="number" id="cliente" class="form-control" placeholder="Cliente" required>
-</div>
-
-<div class="col-md-3 col-12">
-<input type="number" id="codigo_parceiro" class="form-control" placeholder="Código parceiro" required>
-</div>
-
-<div class="col-md-3 col-12">
-<input type="number" id="material" class="form-control" placeholder="Material" required>
-</div>
-
-<div class="col-md-3 col-12">
-<input type="number" id="ean" class="form-control" placeholder="EAN" required>
-</div>
-
-<div class="col-md-3 col-12">
-<input type="text" id="descricao" class="form-control" placeholder="Descrição" required>
-</div>
-
-<div class="col-md-3 col-12">
-<input type="text" id="un_med" class="form-control" placeholder="Un Med" required>
-</div>
-
-<div class="col-md-3 col-12">
-<input type="number" id="un" class="form-control" placeholder="Un" required>
-</div>
-
-<div class="col-md-3 col-12">
-<input type="number" id="qtd_cx" class="form-control" placeholder="Qtd caixa" required>
-</div>
-
-<div class="col-md-3 col-12">
-<input type="text" id="situacao" class="form-control" placeholder="Situação" required>
-</div>
-
-<div class="col-12">
-<button id="salvarNovo" class="btn btn-success">Salvar</button>
-</div>
-
-</div>
-
 </div>
 
 <!-- TABELA -->
@@ -150,6 +100,5 @@
 <script src="../../css/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../../js/navbar.js"></script>
 <script src="../../js/loader.js"></script>
-<script type="module" src="../../pages/4.produtos/js/produtos.js"></script>
 </body>
 </html>
