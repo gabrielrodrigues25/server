@@ -26,7 +26,7 @@ router.get("/Clientes", async (req, res) => {
     `;
 
     if (Promotor) {
-      query += ` AND Promotor = @Promotor`;
+      query += ` AND Login = @Promotor`;
       request.input("Promotor", sql.NVarChar, Promotor);
     }
 

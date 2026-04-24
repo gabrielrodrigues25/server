@@ -1,5 +1,7 @@
 import express from "express";
 import jwt from "jsonwebtoken";
+import sql from "mssql";
+import { poolDisp, poolConnectDisp } from "../auth/banco.js";
 import { getListItems, buscarContagemAnterior } from "../services/sharepointService.js";
 import fetch from "node-fetch";
 import querystring from "querystring";
@@ -139,24 +141,44 @@ router.get("/callback", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { usuario, senha } = req.body;
-    const Login = await getListItems("dClientes");
 
-    const user = Login.find(item => {
-      const matricula = item.field_9 ? String(item.field_9).trim() : "";
-      const senhaEsperada = "5" + matricula;
-      return matricula === usuario.trim() && senha === senhaEsperada;
-    });
+    const request = poolDisp.request();
 
-    if (!user) return res.status(401).json({ message: "Usuário ou senha inválidos" });
+    request.input("Login", sql.NVarChar, usuario.trim());
 
-    const token = jwt.sign({ usuario }, process.env.JWT_SECRET || "chave_secreta", { expiresIn: "2h" });
+    const result = await request.query(`
+      SELECT *
+      FROM dClientes
+      WHERE Login = @Login
+    `);
+
+    const user = result.recordset[0];
+
+    if (!user) {
+      return res.status(401).json({ message: "Usuário ou senha inválidos" });
+    }
+
+    const matricula = String(user.Login).trim();
+    const senhaEsperada = "5" + matricula;
+
+    if (senha !== senhaEsperada) {
+      return res.status(401).json({ message: "Usuário ou senha inválidos" });
+    }
+
+    const token = jwt.sign(
+      { usuario: matricula },
+      process.env.JWT_SECRET || "chave_secreta",
+      { expiresIn: "8h" }
+    );
 
     res.json({
       token,
       nome: user.Promotor,
-      matricula: user.field_9
+      matricula: user.Login
     });
+
   } catch (err) {
+    console.error("Erro /login:", err);
     res.status(500).json({ message: err.message });
   }
 });
