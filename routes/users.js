@@ -1,6 +1,8 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import { getListItems, buscarContagemAnterior } from "../services/sharepointService.js";
+import { poolDisp, poolConnectDisp } from "../auth/banco.js";
+import sql from "mssql";
 import fetch from "node-fetch";
 import querystring from "querystring";
 import dotenv from "dotenv";
@@ -136,7 +138,7 @@ router.get("/callback", async (req, res) => {
 });
 
 //Login normal (matrícula + senha)
-router.post("/login", async (req, res) => {
+router.post("/loginShare", async (req, res) => {
   try {
     const { usuario, senha } = req.body;
     const Login = await getListItems("dClientes");
