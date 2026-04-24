@@ -104,7 +104,7 @@ router.get("/Produtos", async (req, res) => {
 
     if (cliente) {
       query += ` AND Cliente = @cliente`;
-      request.input("Cliente", sql.Int, Cliente);
+      request.input("Cliente", sql.Int, cliente);
     }
 
     const result = await request.query(query);

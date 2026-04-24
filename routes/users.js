@@ -151,7 +151,7 @@ router.post("/loginShare", async (req, res) => {
 
     if (!user) return res.status(401).json({ message: "Usuário ou senha inválidos" });
 
-    const token = jwt.sign({ usuario }, process.env.JWT_SECRET || "chave_secreta", { expiresIn: "2h" });
+    const token = jwt.sign({ usuario }, process.env.JWT_SECRET || "chave_secreta", { expiresIn: "8h" });
 
     res.json({
       token,
@@ -163,6 +163,7 @@ router.post("/loginShare", async (req, res) => {
   }
 });
 
+//login pelo banco
 router.post("/login", async (req, res) => {
   try {
     const { usuario, senha } = req.body;
