@@ -114,6 +114,7 @@ router.get("/callback", async (req, res) => {
     });
 
     const userData = await userResponse.json();
+    const nome = userData.displayName;
 
     const email =
       userData.mail ||
@@ -126,6 +127,7 @@ router.get("/callback", async (req, res) => {
     req.session.logado = true;
     req.session.user = {
       email,
+      nome,
       microsoft: true
     };
 
@@ -170,7 +172,7 @@ router.post("/login", async (req, res) => {
 
     const request = poolDisp.request();
 
-    request.input("Login", sql.NVarChar, usuacrio.trim());
+    request.input("Login", sql.NVarChar, usuario.trim());
 
     const result = await request.query(`
       SELECT *
@@ -200,7 +202,8 @@ router.post("/login", async (req, res) => {
     res.json({
       token,
       nome: user.Promotor,
-      matricula: user.Login
+      matricula: user.Login,
+      id: user.id
     });
 
   } catch (err) {

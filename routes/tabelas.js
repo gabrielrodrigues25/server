@@ -12,6 +12,44 @@ router.get("/teste", (req, res) => {
 // Rotas protegidas
 
 /*-----BANCO DE DADOS-----*/
+
+router.put("/usuario/lote", async (req, res) => {
+  try {
+    const { ids, nome, matricula } = req.body;
+
+    if (!ids || ids.length === 0) {
+      return res.status(400).json({ error: "Nenhuma loja informada" });
+    }
+
+    const pool = await poolDisp;
+
+    // cria lista segura de parâmetros
+    const request = pool.request();
+
+    ids.forEach((id, index) => {
+      request.input(`Cliente${index}`, sql.Int, id);
+    });
+
+    const listaIds = ids.map((_, i) => `@Cliente${i}`).join(",");
+
+    await request
+      .input("nome", sql.VarChar, nome)
+      .input("matricula", sql.VarChar, matricula)
+      .query(`
+        UPDATE dClientes
+        SET Promotor = @nome,
+            Login = @matricula
+        WHERE Cliente IN (${listaIds})
+      `);
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Erro ao atualizar lojas" });
+  }
+});
+
 router.get("/Clientes", async (req, res) => {
   try {
 

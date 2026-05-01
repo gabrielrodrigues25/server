@@ -15,15 +15,15 @@
 <!-- Navbar -->
 <div id="navbar"></div>
 
-<div class="container mt-4">
+<div class="container">
     <!-- TÍTULO -->
-    <div class="row mb-4">
+    <!-- <div class="row mb-4">
         <div class="col-12">
             <div class="card text-center p-3">
                 <h1>Contagem de Estoque</h1>
             </div>
         </div>
-    </div>
+    </div> -->
 
 <div class="card p-3 mb-3">
 
@@ -43,13 +43,29 @@
 </div>
 
 <div class="col-md-3 col-12">
-<select id="filtroCliente" class="form-select">
-<option value="">Todas os clientes</option>
+<select id="periodo" class="form-select">
+<option value="15">Periodo 15</option>
+<option value="30">Periodo 30</option>
+<option value="60">Periodo 60</option>
+<option value="90">Periodo 90</option>
+</select>
+</div>
+
+<div class="col-md-3 col-12">
+<select id="tipo" class="form-select">
+<option value="media">Selecione uma opção</option>
+<option value="primeiros">Primeiros 15</option>
+<option value="ultimos">Ultimos 15</option>
 </select>
 </div>
 
 <div class="col-md-3 col-12">
     <input type="date" id="filtroData" class="form-select">
+    </input>
+</div>
+
+<div class="col-md-3 col-12">
+    <input type="date" id="filtroDataEntrega" class="form-select">
     </input>
 </div>
 
@@ -62,10 +78,8 @@
 
 <!-- TABELA -->
 
-    <div class="card p-3">
+    <div class="card">
 
-    <div class="table-responsive">
-        <div class="dados-relatorio">
             <div class="div-tab" id="dadosRecebimento">
 
             <table id="tabContagem" class="tabela-dados">
@@ -78,12 +92,11 @@
 
             </table>
 
-        </div>
-
     </div>
-
-</div>
-</div>
+</div><br>
+    <div class="card">
+        <div id="painelPrevisao" style="padding:10px;"></div>
+    </div>
 </div>
 
 <!-- LOADER -->

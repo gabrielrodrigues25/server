@@ -12,6 +12,18 @@
 
 <style>
 
+body {
+    min-height: 100vh;
+
+    background: 
+        linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+        url("./img/background.jpg");
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
 /* Tela central */
 
 .boas-vindas{
@@ -21,24 +33,34 @@
     justify-content: center;
     text-align: center;
 }
+.boas-vindas h1,
+.boas-vindas p {
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
 
 .boas-vindas h1{
     font-size: 40px;
     font-weight: bold;
+    color: #fff;
 }
 
 .boas-vindas p{
     font-size: 18px;
-    color: #666;
+    color: #eee;
 }
 
 .btn-sistema{
     background: #e5952c;
     border: none;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    transition: 0.3s;
 }
 
 .btn-sistema:hover{
     background: #cc7f1a;
+    transform: translateY(-2px);
 }
 
 </style>
@@ -60,6 +82,7 @@
 <div>
 
 <h1>Bem-vindo ao DISP</h1>
+<h2 id="welcome"></h2>
 
 <p>Gerencie produtos, lojas e relatórios de forma rápida.</p>
 
@@ -71,6 +94,17 @@
 
 <script src="../../js/navbar.js"></script>
 <script src="../../css/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script>fetch("/usuario")
+  .then(res => res.json())
+  .then(user => {
+    const nome = user.nome || user.email;
+    document.getElementById("welcome").innerText =
+      `Seja bem-vindo, ${nome}!`;
+  })
+  .catch(() => {
+    document.getElementById("welcome").innerText =
+      "Seja bem-vindo!";
+  });</script>
 
 </body>
 </html>

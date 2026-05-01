@@ -1,6 +1,60 @@
 import { poolDisp, pool1, pool2, poolConnectDisp, poolConnect1, poolConnect2 } from "../auth/banco.js";
 import sql from "mssql";
 
+export async function importarPlanograma(itens) {
+  await poolConnectDisp;
+
+  for (const item of itens) {
+
+    const request = poolDisp.request();
+
+    request.input("Cliente", sql.Int, item.field_1 || null);
+    request.input("Material", sql.Int, item.field_0 || null);
+    request.input("Descricao", sql.NVarChar(120), item.field_2 || null);
+    request.input("UndMedida", sql.NVarChar(10), item.field_3 || null);
+    request.input("Peso", sql.Numeric(18,1), item.field_4 || null);
+    request.input("QtdUnd", sql.Numeric(18,1), item.field_5 || null);
+
+    await request.query(`
+      MERGE dPlanograma AS target
+      USING (
+        SELECT 
+          @Cliente AS Cliente,
+          @Material AS Material
+      ) AS source
+      ON target.Cliente = source.Cliente 
+         AND target.Material = source.Material
+
+      WHEN MATCHED THEN
+        UPDATE SET
+          Descricao = @Descricao,
+          UndMedida = @UndMedida,
+          Peso = @Peso,
+          QtdUnd = @QtdUnd
+
+      WHEN NOT MATCHED THEN
+        INSERT (
+          Cliente,
+          Material,
+          Descricao,
+          UndMedida,
+          Peso,
+          QtdUnd
+        )
+        VALUES (
+          @Cliente,
+          @Material,
+          @Descricao,
+          @UndMedida,
+          @Peso,
+          @QtdUnd
+        );
+    `);
+  }
+
+  console.log("Sync com dPlanograma concluído");
+}
+
 export async function importarLojas(itens) {
   await poolConnectDisp;
 

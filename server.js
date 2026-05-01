@@ -38,6 +38,11 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(process.cwd(), "public/index.html"));
 });
 
+// usuario logado
+app.get("/usuario", verificarSessao, (req, res) => {
+  res.json(req.session.user);
+});
+
 // página home
 app.get("/home", verificarSessao, (req, res) => {
   res.sendFile(path.join(process.cwd(), "public/pages/1.home/home.html"));
@@ -76,7 +81,7 @@ app.get("/programados", (req, res) => {
 app.use("/auth", users);
 
 // API protegida por sessão
-app.use("/tab", verificarSessao, crud, saptab, sqlTab)
+app.use("/tab", /* verificarSessao,  */crud, saptab, sqlTab)
 
 // API protegida por token
 app.use("/api", verificarToken, sharepointRoutes);

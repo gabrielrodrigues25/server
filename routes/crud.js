@@ -1,15 +1,31 @@
 import express from "express";
-import { pool1, pool2, poolConnect1, poolConnect2 } from "../auth/banco.js";
+import sql from "mssql";
+import { poolDisp, pool1, pool2, poolConnectDisp, poolConnect1, poolConnect2 } from "../auth/banco.js";
 import { getListItems, updateListItem, createListItem, deleteListItem, AllGetListItems } from "../services/sharepointService.js";
 import dotenv from "dotenv";
-import { importarLojas } from "../services/bancoService.js";
+import { importarProdutos } from "../services/bancoService.js";
 
 dotenv.config();
 const router = express.Router();
 
+//BUSCAR ITENS DA LISTA
+router.get("/plano",  async (req, res) => {
+  try {
+
+    const itens = await getListItems("Planograma");
+
+    res.json({ itens });
+
+    importarPlanograma(itens);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});;
+
 
 //lista de lojas
-/* router.get("/Clientes", async (req, res) => {
+ router.get("/Clientes", async (req, res) => {
  try {
 
     const itens = await getListItems("dClientes");
@@ -25,12 +41,13 @@ const router = express.Router();
 
 });
 
-router.get("/Produtos", async (req, res) => {
+router.get("/ProdutosInput", async (req, res) => {
  try {
 
     const itens = await getListItems("dProdutosA");
     res.json({ itens });
-    await importarProdutos(itens)
+    /* await importarProdutos(itens) */
+    console.log(itens.length)
 
   } catch (err) {
 
@@ -39,10 +56,142 @@ router.get("/Produtos", async (req, res) => {
 
   }
 
-});  */
+}); 
+
+router.get("/Planograma", async (req, res) => {
+  try {
+
+    const { cliente } = req.query;
+
+    const request = poolDisp.request();
+
+    let query = `
+      SELECT *
+      FROM dPlanograma
+      WHERE 1=1
+    `;
+
+    // filtro por cliente (código)
+    if (cliente) {
+      query += ` AND Cliente = @cliente`;
+      request.input("cliente", sql.Int, cliente);
+    }
+
+    const result = await request.query(query);
+
+    const registros = result.recordset.map(item => ({
+      cliente: item.Cliente,
+      material: item.Material,
+      descricao: item.Descricao,
+      undMedida: item.UndMedida,
+      peso: item.Peso,
+      qtd: item.QtdUnd,
+      id: item.Id
+    }));
+
+    res.json({ registros });
+
+  } catch (err) {
+    console.error("Erro /Grade:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/Grade", async (req, res) => {
+  try {
+
+    const { cliente } = req.query;
+
+    const request = poolDisp.request();
+
+    let query = `
+      SELECT *
+      FROM dGrade
+      WHERE 1=1
+    `;
+
+    // filtro por cliente (código)
+    if (cliente) {
+      query += ` AND Cliente = @cliente`;
+      request.input("cliente", sql.NVarChar, cliente);
+    }
+
+    const result = await request.query(query);
+
+    const registros = result.recordset.map(item => ({
+      cliente: item.Cliente,
+      loja: item.NomeFantasia,
+      diaPedido: item.DiaPedido,
+      diaEntrega: item.DiaEntrega,
+      dias: item.Dias,
+      considerar: item.Considerar,
+      id: item.id
+    }));
+
+    res.json({ registros });
+
+  } catch (err) {
+    console.error("Erro /Grade:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/Lojas", async (req, res) => {
+  try {
+
+    const { cliente, rede, loja } = req.query;
+
+    const request = poolDisp.request();
+
+    let query = `
+      SELECT *
+      FROM dClientes
+      WHERE 1=1
+    `;
+
+    // filtro por cliente (código)
+    if (cliente) {
+      query += ` AND Cliente = @cliente`;
+      request.input("cliente", sql.NVarChar, cliente);
+    }
+
+    // filtro por rede
+    if (rede) {
+      query += ` AND Nome1 = @rede`;
+      request.input("rede", sql.NVarChar, rede);
+    }
+
+    // filtro por loja (fantasia)
+    if (loja) {
+      query += ` AND NomeFantasia = @loja`;
+      request.input("loja", sql.NVarChar, loja);
+    }
+
+    const result = await request.query(query);
+
+    const registros = result.recordset.map(item => ({
+      rede: item.Nome1,
+      loja: item.NomeFantasia,
+      cliente: item.Cliente,
+      cidade: item.Cidade,
+      cep: item.CodigoPostal,
+      estado: item.Regiao,
+      rua: item.Rua,
+      endereco: item.Bairro,
+      promotor: item.Promotor ?? "Sem promotor",
+      login: item.Login ?? 0
+    }));
+
+    res.json({ registros });
+
+  } catch (err) {
+    console.error("Erro:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 //lista de lojas
-router.get("/Lojas", async (req, res) => {
+router.get("/LojasShare", async (req, res) => {
  try {
 
     const { loja, rede } = req.query;
@@ -85,6 +234,59 @@ router.get("/Lojas", async (req, res) => {
 //LISTA DE PRODUTOS - GET, POST, PUT, DELETE
 
 router.get("/Produtos", async (req, res) => {
+  try {
+
+    const { cliente } = req.query;
+
+    const request = poolDisp.request();
+
+    let query = `
+      SELECT *
+      FROM dProdutos
+      WHERE 1=1
+    `;
+
+    if (cliente) {
+      query += ` AND Cliente = @cliente`;
+      request.input("Cliente", sql.Int, cliente);
+    }
+
+    const result = await request.query(query);
+
+    const produtos = result.recordset.map(item => ({
+      loja: item.Loja,
+      descricao: item.Descricao,
+      ean: item.Ean, // assumindo ET = etiqueta/EAN
+
+      cliente: item.Cliente,
+      codigo_parceiro: item.CodigoCliente,
+      material: item.Material,
+
+      un: item.Unid,
+      un_med: item.UnidMed,
+      qtd_cx: item.UnidCx,
+
+      situacao: item.Situacao,
+      lojasAtivas: item.LojasAtivas,
+
+      criado: item.Criado,
+      modificado: item.Modificado,
+      criadoPor: item.CriadoPor,
+      modificadoPor: item.ModificadoPor,
+
+      id: item.Id
+    }));
+
+    res.json({ produtos });
+    console.log(produtos.length)
+
+  } catch (err) {
+    console.error("Erro /Produtos:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/ProdutosShare", async (req, res) => {
 
   try {
 
@@ -435,7 +637,8 @@ router.get('/VendasProgramadas', async (req, res) => {
       .input('cliente', cliente)
       .query(`		
         SELECT
-    V.MATERIAL AS Material,
+    V.MATERIAL AS "Descrição",
+    CAST(V.N_MATERIAL AS INT) AS Material,
     V.DOCUMENTO_VENDAS AS Doc,
     V.EMISSOR_ORDEM AS Emissor,
     CAST(V.ROTA AS INT) AS Rota,
