@@ -81,7 +81,7 @@ app.get("/programados", (req, res) => {
 app.use("/auth", users);
 
 // API protegida por sessão
-app.use("/tab", /* verificarSessao,  */crud, saptab, sqlTab)
+app.use("/tab", verificarSessao, crud, saptab, sqlTab)
 
 // API protegida por token
 app.use("/api", verificarToken, sharepointRoutes);

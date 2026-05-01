@@ -918,6 +918,7 @@ router.get("/Relatorio", async (req, res) => {
         gondola: f.field_8,
         camara: f.field_9,
         quantidade: f.field_11,
+        estoque: f.field_11,
         planograma: f.field_12,
         data_vencimento: f.Datavencimento,
         dias_vencimento: f.Dias_x0020_para_x0020_vencer,
