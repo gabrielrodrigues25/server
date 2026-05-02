@@ -33,6 +33,15 @@ async function buscarUsuario(){
 
 document.addEventListener("DOMContentLoaded", () => {
 
+  //informar qual é a senha
+  const info = document.querySelector(".info-password");
+
+if (info) {
+  info.addEventListener("click", () => {
+    mostrarMensagem("Sua senha é: 5 + sua matrícula", "sucesso");
+  });
+}
+
   const form = document.getElementById("formLogin");
 
   if (form) {
