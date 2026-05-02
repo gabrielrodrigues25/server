@@ -37,12 +37,26 @@ const configDisp = {
   }
 };
 
+const configLogin = {
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  server: process.env.DB_SERVER,
+  database: process.env.DB_DATABASE_LOGIN,
+  port: Number(process.env.DB_PORT),
+  options: {
+    encrypt: false,
+    trustServerCertificate: true
+  }
+};
+
+const poolLogin = new sql.ConnectionPool(configLogin);
 const poolDisp = new sql.ConnectionPool(configDisp);
 const pool1 = new sql.ConnectionPool(config1);
 const pool2 = new sql.ConnectionPool(config2);
 
+const poolConnectLogin = poolLogin.connect();
 const poolConnectDisp = poolDisp.connect();
 const poolConnect1 = pool1.connect();
 const poolConnect2 = pool2.connect();
 
-export {poolDisp, pool1, pool2, poolConnectDisp, poolConnect1, poolConnect2 };
+export {poolLogin, poolDisp, pool1, pool2, poolConnectLogin, poolConnectDisp, poolConnect1, poolConnect2 };

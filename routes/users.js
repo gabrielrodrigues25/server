@@ -1,7 +1,7 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import { getListItems, buscarContagemAnterior } from "../services/sharepointService.js";
-import { poolDisp, poolConnectDisp } from "../auth/banco.js";
+import { poolDisp, poolConnectDisp, poolLogin, poolConnectLogin } from "../auth/banco.js";
 import sql from "mssql";
 import fetch from "node-fetch";
 import querystring from "querystring";
@@ -125,11 +125,9 @@ router.get("/callback", async (req, res) => {
   return res.send("Não foi possível obter email da Microsoft");
 }
     req.session.logado = true;
-    req.session.user = {
-      email,
-      nome,
-      microsoft: true
-    };
+    req.session.tipoLogin = "microsoft";
+    req.session.nome = userData.displayName;
+    req.session.user = userData;
 
   return res.redirect("/home");
 
@@ -217,22 +215,85 @@ router.post("/log", async (req, res) => {
   try {
     const usuario = String(req.body.usuario || "").trim();
     const senha = String(req.body.senha || "").trim();
-    const Login = await getListItems("dClientes");
 
-    const user = Login.find(item => {
-      const matricula = item.field_9 ? String(item.field_9).trim() : "";
-      return matricula === usuario && senha === "5" + matricula;
+    /* if (!usuario || !senha) {
+      return res.json({ erro: "Preencha usuário e senha" });
+    }
+ */
+    const pool = await poolLogin;
+
+    const result = await pool.request()
+      .input("usuario", usuario)
+      .query(`
+        SELECT TOP 1 *
+        FROM dim_Cadastro_Funcionario
+        WHERE CODIGO_CHAPA = @usuario
+      `);
+
+    const user = result.recordset[0];
+
+    if (!user) {
+      return res.json({ erro: "Usuário não encontrado" });
+    }
+
+    const matricula = String(user.CODIGO_CHAPA).trim();
+
+    // regra da senha: "5" + matrícula
+    if (senha !== "5" + matricula) {
+      return res.json({ erro: "Usuário ou senha inválidos" });
+    }
+
+    // sessão
+    req.session.logado = true;
+    req.session.tipoLogin = "local";
+    req.session.nome = user.NOME_COLABORADOR;
+    req.session.user = {
+      codigo: user.CODIGO_CHAPA
+    };
+
+    return res.json({
+      sucesso: true,
+      nome: user.NOME_COLABORADOR,
+      matricula
     });
 
-    if (!user) return res.send("Usuário ou senha inválidos");
-
-    req.session.logado = true;
-    req.session.usuario = usuario;
-    req.session.nome = user.Promotor;
-
-    res.redirect("/home");
   } catch (err) {
-    res.status(500).send(err.message);
+    console.error(err);
+    return res.json({ erro: "Erro no servidor" });
+  }
+});
+
+router.get("/buscar-matricula", async (req, res) => {
+  try {
+    const cpf = String(req.query.cpf || "").replace(/\D/g, "");
+
+    const pool = await poolConnectLogin;
+
+    const result = await pool.request()
+      .input("cpf", cpf)
+      .query(`
+        SELECT TOP 1 
+          CODIGO_CHAPA,
+          NOME_COLABORADOR,
+          CPF
+        FROM dim_Cadastro_Funcionario
+        WHERE REPLACE(REPLACE(REPLACE(CPF, '.', ''), '-', ''), ' ', '') = @cpf
+      `);
+
+    const user = result.recordset[0];
+
+    if (!user) {
+      return res.json({ erro: true });
+    }
+
+    res.json({
+      nome: user.NOME_COLABORADOR,
+      matricula: user.CODIGO_CHAPA
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: true });
   }
 });
 

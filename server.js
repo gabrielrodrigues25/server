@@ -40,7 +40,19 @@ app.get("/", (req, res) => {
 
 // usuario logado
 app.get("/usuario", verificarSessao, (req, res) => {
-  res.json(req.session.user);
+
+  const nome =
+    req.session.nome ||
+    req.session.user?.nome ||
+    req.session.user?.displayName ||
+    req.session.user?.email ||
+    "Usuário";
+
+  res.json({
+    nome,
+    tipoLogin: req.session.tipoLogin || "local"
+  });
+
 });
 
 // página home
